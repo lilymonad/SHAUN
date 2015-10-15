@@ -103,6 +103,11 @@ sweeper& sweeper::get(const std::string& path)
     return next(path);
 }
 
+sweeper& operator()(const std::string& path)
+{
+    return next(path);
+}
+
 #define VALUE(x) template<>\
     x& sweeper::value()    \
     {                      \

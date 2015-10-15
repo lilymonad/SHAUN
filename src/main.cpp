@@ -22,7 +22,7 @@ int main(void)
         {
             for (int i = 0; i < 2; ++i)
             {
-                shaun::number yep = swp.get("planets")[i].next("physicalProperties:color")[1].value<shaun::number>();
+                shaun::number yep = swp.get("planets")[i]("physicalProperties:color")[1].value<shaun::number>();
 
                 std::cout << (double)(yep) << std::endl;
             }

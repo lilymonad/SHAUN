@@ -18,6 +18,7 @@ public:
     sweeper& get(const std::string& path);
     sweeper& next(const std::string& path);
     sweeper& operator[](size_t i);
+    sweeper& operator()(const std::string& path);
 
     void rewind();
 private:
