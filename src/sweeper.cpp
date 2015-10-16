@@ -11,6 +11,20 @@ sweeper::sweeper(const object& object)
     current_ = &root_;
 }
 
+sweeper::sweeper(const sweeper& swp)
+{
+    current_name_ = swp.current_name_;
+    current_      = swp.current_;
+    if (swp.current_->type() == Type::object)
+    {
+        root_ = *static_cast<object*>(swp.current_);
+    }
+    else
+    {
+        root_.add<shaun>(current_name_, current_);
+    }
+}
+
 shaun * sweeper::compute_path(const std::string& path)
 {
     std::string::const_iterator first, second;

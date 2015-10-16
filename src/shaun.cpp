@@ -61,6 +61,12 @@ object::~object()
 {
 }
 
+object& object::operator=(const object& org)
+{
+    variables_ = org.variables_;
+    return *this;
+}
+
 shaun * object::get_variable(const std::string& name)
 {
     try
@@ -146,6 +152,27 @@ const std::vector<std::shared_ptr<shaun> >& list::elements()
 {
     return elements_;
 }
+
+shaun * list::operator[](size_t i)
+{
+    return elements_[i].get();
+}
+
+#define LIST_AT(TYPE) template<>\
+    TYPE& list::at(size_t i)\
+    {\
+        shaun * ptr = elements_[i].get();\
+        if (ptr->type() != Type::TYPE)\
+            throw "type missmatch";\
+\
+        return *static_cast<TYPE*>(ptr);\
+    }
+
+LIST_AT(list)
+LIST_AT(object)
+LIST_AT(number)
+LIST_AT(boolean)
+LIST_AT(string)
 
 /*****************************
  *

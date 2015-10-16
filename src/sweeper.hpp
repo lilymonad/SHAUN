@@ -11,6 +11,7 @@ class sweeper
 {
 public:
     sweeper(const object& object);
+    sweeper(const sweeper& swp);
 
     template<class C>
     C& value();

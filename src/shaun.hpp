@@ -36,6 +36,11 @@ public:
 
     void push_back(shaun * elem);
     const std::vector<std::shared_ptr<shaun> >& elements();
+
+    shaun * operator[](size_t i);
+
+    template<class C>
+    C& at(size_t i);
 private:
     std::vector<std::shared_ptr<shaun> > elements_;
 };
@@ -65,6 +70,8 @@ public:
 
     Unit unit();
     operator double() const { return value; }
+
+    
 private:
     double value;
     Unit un;
@@ -105,6 +112,8 @@ public:
     object(const object& obj);
     ~object();
     Type type();
+
+    object& operator=(const object& obj);
 
     template<class C>
     void add(std::pair<std::string, C *> pair);
