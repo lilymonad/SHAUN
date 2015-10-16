@@ -103,18 +103,18 @@ sweeper& sweeper::get(const std::string& path)
     return next(path);
 }
 
-sweeper& operator()(const std::string& path)
+sweeper& sweeper::operator()(const std::string& path)
 {
     return next(path);
 }
 
-#define VALUE(x) template<>\
-    x& sweeper::value()    \
+#define VALUE(TYPE) template<>\
+    TYPE& sweeper::value()    \
     {                      \
-        if (current_->type() != Type::x)\
-            throw ("expected list but " + current_name_ + " has type " + type_to_string(current_->type()));\
+        if (current_->type() != Type::TYPE)\
+            throw ("expected " + type_to_string(Type::TYPE) + " but " + current_name_ + " has type " + type_to_string(current_->type()));\
                            \
-        return *static_cast<x*>(current_);\
+        return *static_cast<TYPE*>(current_);\
     }
 
 VALUE(null)

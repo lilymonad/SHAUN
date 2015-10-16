@@ -13,6 +13,7 @@
 
 #define PARSE_ERROR(str) throw parse_error(line_, column_, #str)
 #define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
+#define TAKE_TO(c) while (iss_.good() && iss_.peek() != c) forward()
 
 namespace shaun
 {
@@ -129,8 +130,43 @@ private:
 
     void skipws()
     {
-        while (iss_.good() && (isspace(iss_.peek()) || iss_.peek() == ','))
+        while (iss_.good() && (isspace(iss_.peek())
+                            || iss_.peek() == ','
+                            || iss_.peek() == '('
+                            || iss_.peek() == '/'))
+        {
+            switch (iss_.peek())
+            {
+                case '(':
+                case '/': skip_comment();
+                default: break;
+            }
+
             forward();
+        }
+    }
+
+    void skip_comment()
+    {
+        switch (iss_.peek())
+        {
+            case '(':
+                TAKE_TO(')');
+                break;
+            case '/':
+                forward();
+                if (iss_.peek() == '/') { TAKE_TO('\n'); return; }
+                if (iss_.peek() == '*')
+                {
+                    while (iss_.good() && iss_.peek() != '/')
+                    {
+                        TAKE_TO('*');
+                        forward();
+                    }
+                    return;
+                } break;
+            default: break;
+        }
     }
 
     void forward()
@@ -229,19 +265,56 @@ private:
     string * parse_string()
     {
         PARSE_ASSERT(iss_.peek() == '"', expected string value);
+        size_t start_col = column_;
         forward();
 
         String str;
         char_type c;
-        while (iss_.good() && (c = iss_.peek()) != '"')
+        bool get_line = false;
+        bool nows     = false;
+
+        // get a normal string OR the first line of a multiline string
+        while (iss_.good() && (c = iss_.peek()) != '\n' && c != '"')
         {
+            if (!isspace(c)) nows = true;
+
             str.push_back(c);
             forward();
         }
 
-        forward();
+        // if only spaces and multiline string, discard spaces
+        if (nows && c == '\n')
+        {
+            str.resize(0);
+        }
+        
+        if (c == '\n') forward();
 
+        // this loop for multiline strings
+        while (iss_.good() && (c = iss_.peek()) != '"')
+        {
+            // each new line resets the "spaces counter"
+            if (c == '\n')
+            {
+                str.push_back(c);
+                get_line = false;
+            }
+            else if (column_ >= start_col || get_line || !isspace(c))
+            {
+                str.push_back(c);
+                get_line = true;
+            }
+
+            forward();
+        }
+
+        // discard last new line, if existing
+        if (str[str.size() - 1] == '\n') str.resize(str.size() - 1);
+
+        finish:
         PARSE_ASSERT(iss_.good(), unexpected EOF while parsing string);
+
+        forward();        
 
         return new string(str);
     }

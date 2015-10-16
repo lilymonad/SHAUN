@@ -22,9 +22,9 @@ int main(void)
         {
             for (int i = 0; i < 2; ++i)
             {
-                shaun::number yep = swp.get("planets")[i]("physicalProperties:color")[1].value<shaun::number>();
+                shaun::string yep = swp.get("planets")[i]("name").value<shaun::string>();
 
-                std::cout << (double)(yep) << std::endl;
+                std::cout << (std::string)(yep) << std::endl;
             }
         }
         catch (std::string str)
