@@ -10,24 +10,30 @@ namespace shaun
 class sweeper
 {
 public:
-    sweeper(const object& object);
+    sweeper(shaun * root);
     sweeper(const sweeper& swp);
+    ~sweeper();
+    
+    sweeper& operator=(const sweeper& swp);
 
     template<class C>
-    C& value();
+    C& value() const;
 
-    sweeper& get(const std::string& path);
-    sweeper& next(const std::string& path);
-    sweeper& operator[](size_t i);
-    sweeper& operator()(const std::string& path);
+    Type type() const;
+    bool is_null() const;
 
-    void rewind();
+    const sweeper& get(const std::string& path) const;
+    const sweeper& operator[](size_t i) const;
+    const sweeper& operator()(const std::string& path) const;
+
 private:
-    shaun * compute_path(const std::string& path);
+    shaun * compute_path(const std::string& path) const;
 
     std::string current_name_;
     shaun * current_;
-    object root_;
+    shaun * root_;
+    
+    std::unique_ptr<sweeper> next_;
 };
 
 } // namespace

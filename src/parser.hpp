@@ -324,7 +324,7 @@ private:
         String num;
         String unit;
         char_type c;
-        while (iss_.good() && ((c = iss_.peek()) == 'E' || c == 'e' || c == '-' || isdigit(c) || c == '.'))
+        while (iss_.good() && ((c = iss_.peek()) == 'E' || c == 'e' || c == '-' || isdigit(c) || c == '.' || c == '+'))
         {
             num.push_back(c);
             forward();

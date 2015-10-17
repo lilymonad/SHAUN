@@ -5,24 +5,23 @@
 namespace shaun
 {
 
-sweeper::sweeper(const object& object)
+sweeper::sweeper(shaun * root)
 {
-    root_ = object;
-    current_ = &root_;
+    root_ = root;
+    current_ = root_;
+    current_name_ = "root";
+    next_ = 0;
 }
 
 sweeper::sweeper(const sweeper& swp)
 {
     current_name_ = swp.current_name_;
-    current_      = swp.current_;
-    if (swp.current_->type() == Type::object)
-    {
-        root_ = *static_cast<object*>(swp.current_);
-    }
-    else
-    {
-        root_.add<shaun>(current_name_, current_);
-    }
+    current_      = root_ = swp.current_;
+    next_ = 0;
+}
+
+sweeper::~sweeper()
+{
 }
 
 shaun * sweeper::compute_path(const std::string& path)
@@ -85,41 +84,32 @@ shaun * sweeper::compute_path(const std::string& path)
     return ret;
 }
 
-sweeper& sweeper::operator[](size_t i)
+const sweeper& sweeper::operator[](size_t i)
 {
     if (current_->type() != Type::list)
         throw (current_name_ + " is not a list");
 
     try
     {
-        current_ = static_cast<list*>(current_)->elements().at(i).get();
-        current_name_ = "";
+        next_ = new sweeper(static_cast<list*>(current_)->elements().at(i).get());
     }
     catch (...)
     {
         throw ("index out of range");
     }
-
-    return *this;
+    
+    return *next_;
 }
 
-sweeper& sweeper::next(const std::string& path)
+const sweeper& sweeper::get(const std::string& path)
 {
-    current_ = compute_path(path);
-
-    return *this;
+    next_ = new sweeper(compute_path(path));
+    return *next_;
 }
 
-
-sweeper& sweeper::get(const std::string& path)
+const sweeper& sweeper::operator()(const std::string& path)
 {
-    rewind();
-    return next(path);
-}
-
-sweeper& sweeper::operator()(const std::string& path)
-{
-    return next(path);
+    return get(path);
 }
 
 #define VALUE(TYPE) template<>\
@@ -138,10 +128,14 @@ VALUE(string)
 VALUE(object)
 VALUE(list)
 
-void sweeper::rewind()
+Type sweeper::type()
 {
-    current_ = &root_;
-    current_name_ = "";
+    return current_->type();
+}
+
+bool sweeper::is_null()
+{
+  return current_->is_null();
 }
 
 } // namespace

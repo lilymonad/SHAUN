@@ -18,10 +18,11 @@ class shaun
 public:    
     virtual ~shaun() {}
 
-    virtual Type type() = 0;
+    Type type();
 
     bool is_null();
 protected:
+    Type type_;
 };
 
 
