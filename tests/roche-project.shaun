@@ -1,3 +1,4 @@
+{
 planets : [
 	{
 		name:"Earth"
@@ -64,3 +65,4 @@ planets : [
 		}
 	}
 ]
+}

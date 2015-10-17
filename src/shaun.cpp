@@ -37,7 +37,7 @@ bool shaun::is_null()
     return type_ == Type::null;
 }
 
-Type type()
+Type shaun::type()
 {
     return type_;
 }
@@ -55,7 +55,7 @@ object::object()
   type_ = Type::object;
 }
 
-object::object(const object& obj) : type_(Type::object), variables_(obj.variables_)
+object::object(const object& obj) : variables_(obj.variables_)
 {
     type_ = Type::object;
 }

@@ -16,13 +16,13 @@ int main(void)
         buffer << file.rdbuf();
 
         shaun::object obj = p.parse(buffer.str());
-        shaun::sweeper swp(obj);
+        shaun::sweeper swp(&obj);
 
         try
         {
             for (int i = 0; i < 2; ++i)
             {
-                shaun::string yep = swp.get("planets")[i]("name").value<shaun::string>();
+                shaun::string yep = swp("planets")[i]("name").value<shaun::string>();
 
                 std::cout << (std::string)(yep) << std::endl;
             }
