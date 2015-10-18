@@ -32,7 +32,7 @@ private:
     std::string name_;
     shaun * root_;
     
-    std::shared_ptr<sweeper> next_;
+    std::unique_ptr<sweeper> next_;
 };
 
 } // namespace
