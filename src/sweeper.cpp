@@ -136,4 +136,18 @@ bool sweeper::is_null() const
   return root_->is_null();
 }
 
+size_t sweeper::size()
+{
+  switch (root_->type())
+  {
+    case Type::null: return 0;
+    case Type::number: return (size_t)((double)(*static_cast<number*>(root_)));
+    case Type::string: return ((std::string)(*static_cast<string*>(root_))).size();
+    case Type::object: return root_->size();
+    case Type::list: return root_->size();
+    case Type::boolean: return (size_t)((bool)(*static_cast<boolean*>(root_)));
+    default: return 0;
+  }
+}
+
 } // namespace

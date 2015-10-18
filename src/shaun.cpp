@@ -123,6 +123,11 @@ Type object::type_of(const std::string& name)
     return get_variable(name)->type();
 }
 
+size_t object::size() const
+{
+  return variables_.size();
+}
+
 /*****************************
  *
  *     list functions
@@ -176,6 +181,11 @@ LIST_AT(object)
 LIST_AT(number)
 LIST_AT(boolean)
 LIST_AT(string)
+
+size_t list::size() const
+{
+  return elements_.size();
+}
 
 /*****************************
  *
