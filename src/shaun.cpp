@@ -2,8 +2,10 @@
 #include <utility>
 #include <sstream>
 #include <iostream>
+#include "visitor.hpp"
 
-// #define VISIT_FUN(x) void x::visited(visitor * visitor) { visitor->visit_ ## x () }
+#define TYPE_FUN(TYPE) Type TYPE::type() { return Type::TYPE; }
+#define VISIT_FUN(x) void x::visited(visitor& v) { v.visit_ ## x (*this); }
 #define OBJ_GET(x) template<>                              \
     x& object::get<x> (const std::string& name)            \
     {                                                      \
@@ -34,12 +36,7 @@ namespace shaun
 
 bool shaun::is_null()
 {
-    return type_ == Type::null;
-}
-
-Type shaun::type()
-{
-    return type_;
+    return false;
 }
 
 /*****************************
@@ -48,16 +45,15 @@ Type shaun::type()
  *
  *****************************/
 
-// VISIT_FUN(object);
+TYPE_FUN(object)
+VISIT_FUN(object);
 
 object::object()
 {
-  type_ = Type::object;
 }
 
 object::object(const object& obj) : variables_(obj.variables_)
 {
-    type_ = Type::object;
 }
 
 object::~object()
@@ -128,22 +124,26 @@ size_t object::size() const
   return variables_.size();
 }
 
+const std::map<std::string, std::shared_ptr<shaun> >& object::variables() const
+{
+    return variables_;
+}
+
 /*****************************
  *
  *     list functions
  *
  *****************************/
 
-// VISIT_FUN(list);
+TYPE_FUN(list)
+VISIT_FUN(list);
 
 list::list()
 {
-    type_ = Type::list;
 }
 
 list::list(const list& l) : elements_(l.elements_)
 {
-    type_ = Type::list;
 }
 
 list::~list()
@@ -193,22 +193,20 @@ size_t list::size() const
  *
  *****************************/
 
-// VISIT_FUN(boolean);
+TYPE_FUN(boolean)
+VISIT_FUN(boolean);
 
 boolean::boolean() : value(false)
 {
-    type_ = Type::boolean;
 }
 
 boolean::boolean(const boolean& b)
 {
     value = b.value;
-    type_ = Type::boolean;
 }
 
 boolean::boolean(bool yes) : value(yes)
 {
-    type_ = Type::boolean;
 }
 
 /*****************************
@@ -217,23 +215,21 @@ boolean::boolean(bool yes) : value(yes)
  *
  *****************************/
 
-// VISIT_FUN(number);
+TYPE_FUN(number)
+VISIT_FUN(number);
 
 number::number() : value(0), un(Unit::none)
 {
-    type_ = Type::number;
 }
 
 number::number(const number& num)
 {
     value = num.value;
     un    = num.un;
-    type_ = Type::number;
 }
 
 number::number(double val, Unit u) : value(val), un(u)
 {
-    type_ = Type::number;
 }
 
 number::Unit number::unit()
@@ -247,23 +243,21 @@ number::Unit number::unit()
  *
  *****************************/
 
-// VISIT_FUN(string);
+TYPE_FUN(string)
+VISIT_FUN(string);
 
 string::string()
 {
-    type_ = Type::string;
 }
 
 string::string(const string& str)
 {
     value = str.value;
-    type_ = Type::string;
 }
 
 string::string(const std::string& str)
 {
     value = str;
-    type_ = Type::string;  
 }
 /*****************************
  *
@@ -271,13 +265,19 @@ string::string(const std::string& str)
  *
  *****************************/
  
+TYPE_FUN(null)
+VISIT_FUN(null)
+
 null::null()
 {
-    type_ = Type::null;
 }
 
 null null::Null;
 
+bool null::is_null()
+{
+    return true;
+}
 
 std::string type_to_string(Type t)
 {

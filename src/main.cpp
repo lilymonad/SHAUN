@@ -4,7 +4,7 @@
 #include <sstream>
 #include <map>
 #include "parser.hpp"
-#include "sweeper.hpp"
+#include "printer.hpp"
 
 int main(void)
 {
@@ -12,27 +12,14 @@ int main(void)
     {
         shaun::parser p;
         std::ifstream file("test.shaun");
+        std::ofstream file2("lel.shaun");
         std::stringstream buffer; 
         buffer << file.rdbuf();
 
         shaun::object obj = p.parse(buffer.str());
-        shaun::sweeper swp(&obj);
 
-        try
-        {
-            for (int i = 0; i < 2; ++i)
-            {
-                shaun::string yep = swp("planets")[i]("name").value<shaun::string>();
-
-                std::cout << (std::string)(yep) << std::endl;
-            }
-        }
-        catch (std::string str)
-        {
-            std::cout << str << std::endl;
-        }
-
-        std::cout << "parsing successful !\n";
+        shaun::printer pr(&file2);
+        pr.visit(obj);
     }
     catch (shaun::parse_error e)
     {

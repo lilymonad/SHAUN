@@ -4,10 +4,11 @@
 #include <map>
 #include <vector>
 #include <memory>
-#include "shaun.hpp"
 
 namespace shaun
 {
+
+class visitor;
 
 enum class Type : int { object, list, boolean, number, string, null };
 
@@ -18,11 +19,12 @@ class shaun
 public:    
     virtual ~shaun() {}
 
-    Type type();
+    virtual Type type() = 0;
 
-    bool is_null();
+    virtual bool is_null();
+
+    virtual void visited(visitor& v) = 0;
 protected:
-    Type type_;
 };
 
 
@@ -34,6 +36,7 @@ public:
     list(const list& l);
     ~list();
     Type type();
+    void visited(visitor& v);
 
     void push_back(shaun * elem);
     const std::vector<std::shared_ptr<shaun> >& elements();
@@ -55,6 +58,7 @@ public:
     boolean(const boolean& b);
     boolean(bool yes);
     Type type();
+    void visited(visitor& v);
 
     operator bool() const { return value; } 
 private:
@@ -70,6 +74,7 @@ public:
     number(const number& num);
     number(double val, Unit u);
     Type type();
+    void visited(visitor& v);
 
     Unit unit();
     operator double() const { return value; }
@@ -87,6 +92,7 @@ public:
     string(const string& str);
     string(const std::string& str);
     Type type();
+    void visited(visitor& v);
 
     explicit operator std::string() const
     {
@@ -101,6 +107,7 @@ class null : public shaun
 public:
     null();
     Type type();
+    void visited(visitor& v);
 
     bool is_null();
 
@@ -115,6 +122,7 @@ public:
     object(const object& obj);
     ~object();
     Type type();
+    void visited(visitor& v);
 
     object& operator=(const object& obj);
 
@@ -130,6 +138,8 @@ public:
     Type type_of(const std::string& name);
     
     size_t size() const;
+
+    const std::map<std::string, std::shared_ptr<shaun> >& variables() const;
 private:
 
     shaun * get_variable(const std::string& name);
