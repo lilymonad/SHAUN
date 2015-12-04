@@ -21,7 +21,7 @@ void printer::visit(shaun& s)
 
 void printer::visit_null(null& n)
 {
-    *stream_ << "(null)";
+    *stream_ << "null";
 }
 
 void printer::visit_boolean(boolean& b)

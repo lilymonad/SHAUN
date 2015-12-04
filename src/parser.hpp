@@ -9,7 +9,7 @@
 #include <stack>
 #include <utility>
 #include "shaun.hpp"
-
+#include "exception.hpp"
 
 #define PARSE_ERROR(str) throw parse_error(line_, column_, #str)
 #define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
@@ -17,34 +17,6 @@
 
 namespace shaun
 {
-
-class parse_error
-{
-public:
-    parse_error(size_t line, size_t column, const std::string& error)
-    {
-        line_ = line+1;
-        column_ = column+1;
-        error_ = error;
-    }
-
-private:
-    size_t line_;
-    size_t column_;
-    std::string error_;
-
-    friend std::ostream& operator<<(std::ostream& out, parse_error& err);
-};
-
-
-    std::ostream& operator<<(std::ostream& out, parse_error& err)
-    {
-        out << "parse error at line: " << err.line_
-            << " column: " << err.column_
-            << " (" << err.error_ << ")";
-
-        return out;
-    }
 
 class parser
 {

@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include "visitor.hpp"
+#include "exception.hpp"
 
 #define TYPE_FUN(TYPE) Type TYPE::type() { return Type::TYPE; }
 #define VISIT_FUN(x) void x::visited(visitor& v) { v.visit_ ## x (*this); }
@@ -12,7 +13,7 @@
         if (get_variable(name)->type() == Type::x)         \
             return *(static_cast<x*>(get_variable(name))); \
                                                            \
-        throw std::string("type missmatch");               \
+        throw type_error(Type::x, get_variable(name)->type(), name);               \
     }
 
 #define OBJ_ADD(x) template<>                                               \
@@ -171,7 +172,7 @@ shaun * list::operator[](size_t i)
     {\
         shaun * ptr = elements_[i].get();\
         if (ptr->type() != Type::TYPE)\
-            throw "type missmatch";\
+            throw type_error(Type::TYPE, ptr->type(), "list element");\
 \
         return *static_cast<TYPE*>(ptr);\
     }

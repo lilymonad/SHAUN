@@ -1,4 +1,5 @@
 #include "sweeper.hpp"
+#include "exception.hpp"
 #include <sstream>
 #include <string>
 
@@ -33,7 +34,7 @@ shaun * sweeper::compute_path(const std::string& path)
         if (second == path.end())
         {
             if (ret->type() != Type::object)
-                throw ("expected object but " + name + " has type " + type_to_string(ret->type()));
+                throw type_error(Type::object, ret->type(), name);
 
             name.assign(first, second);
             ret = static_cast<object*>(ret)->get_variable(name);
@@ -44,7 +45,7 @@ shaun * sweeper::compute_path(const std::string& path)
         if (*(second) == ':' || *(second) == '[')
         {
             if (ret->type() != Type::object)
-                throw ("expected object but " + name + " has type " + type_to_string(ret->type()));
+                throw type_error(Type::object, ret->type(), name);
 
             name.assign(first, second);
 
@@ -53,7 +54,7 @@ shaun * sweeper::compute_path(const std::string& path)
             if (*(second) == '[')
             {
                 if (ret->type() != Type::list)
-                    throw ("expected list but " + name + " has type " + type_to_string(ret->type()));
+                    throw type_error(Type::object, ret->type(), name);
 
                 first = ++second;
                 while (*second != ']') ++second;
@@ -67,7 +68,7 @@ shaun * sweeper::compute_path(const std::string& path)
                 }
                 catch (...)
                 {
-                    throw ("index out of range");
+                    throw list_index_error();
                 }
 
                 ++second;
@@ -85,7 +86,7 @@ shaun * sweeper::compute_path(const std::string& path)
 sweeper& sweeper::operator[](size_t i)
 {
     if (root_->type() != Type::list)
-        throw (name_ + " is not a list");
+        throw type_error(Type::list, root_->type(), name_);
 
     try
     {
@@ -93,7 +94,7 @@ sweeper& sweeper::operator[](size_t i)
     }
     catch (...)
     {
-        throw ("index out of range");
+        throw list_index_error();
     }
     
     return *next_;
@@ -114,7 +115,7 @@ sweeper& sweeper::operator()(const std::string& path)
     TYPE& sweeper::value() const    \
     {                      \
         if (root_->type() != Type::TYPE)\
-            throw ("expected " + type_to_string(Type::TYPE) + " but " + name_ + " has type " + type_to_string(root_->type()));\
+            throw type_error(Type::TYPE, root_->type(), name_);\
                            \
         return *static_cast<TYPE*>(root_);\
     }

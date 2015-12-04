@@ -7,7 +7,7 @@
 
 namespace shaun
 {
-
+  
 class visitor;
 
 enum class Type : int { object, list, boolean, number, string, null };
@@ -32,6 +32,9 @@ protected:
 class list : public shaun
 {
 public:
+  
+    using vector = std::vector<std::shared_ptr<shaun> >;
+    
     list();
     list(const list& l);
     ~list();
@@ -39,7 +42,7 @@ public:
     void visited(visitor& v);
 
     void push_back(shaun * elem);
-    const std::vector<std::shared_ptr<shaun> >& elements();
+    const vector& elements();
 
     shaun * operator[](size_t i);
 
@@ -48,7 +51,7 @@ public:
     
     size_t size() const;
 private:
-    std::vector<std::shared_ptr<shaun> > elements_;
+    vector elements_;
 };
 
 class boolean : public shaun
