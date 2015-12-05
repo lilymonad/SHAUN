@@ -31,7 +31,7 @@ object: {
 To access elements, you can either use the shaun objects methods
 or use the sweeper object.
 
-```C
+```C++
 int main(void)
 {
   using namespace shaun;
