@@ -17,13 +17,6 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const exception& err);
 };
 
-std::ostream& operator<<(std::ostream& out, const exception& err)
-{
-    out << err.to_string();
-
-    return out;
-}
-
 class parse_error : public exception
 {
 public:

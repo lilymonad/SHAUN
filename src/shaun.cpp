@@ -35,6 +35,13 @@
 namespace shaun
 {
 
+std::ostream& operator<<(std::ostream& out, const exception& err)
+{
+    out << err.to_string();
+
+    return out;
+}
+
 bool shaun::is_null()
 {
     return false;
