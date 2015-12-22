@@ -2,6 +2,7 @@
 #define EXCEPTION_HPP
 
 #include "shaun.hpp"
+#include <sstream>
 
 namespace shaun
 {
@@ -13,15 +14,8 @@ public:
     virtual std::string to_string() const = 0;
     
     
-    friend std::ostream& operator<<(std::ostream& out, const exception& err)
+    friend std::ostream& operator<<(std::ostream& out, const exception& err);
 };
-
-std::ostream& operator<<(std::ostream& out, const exception& err)
-{
-    out << err.to_string();
-
-    return out;
-}
 
 class parse_error : public exception
 {
@@ -40,9 +34,11 @@ public:
     
     std::string to_string() const
     {
-        return "parse error at line: " + err.line_
-             + " column: " + err.column_
-             + " (" + err.error_ + ")";
+        std::stringstream ss;
+        ss << "parse error at line: " << line_
+             << " column: " << column_
+             << " (" << error_ << ")";
+        return ss.str();
     }
     
 private:
