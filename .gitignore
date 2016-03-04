@@ -1,2 +1,4 @@
 *.hs
+obj/
+lib/
 src/main.cpp
