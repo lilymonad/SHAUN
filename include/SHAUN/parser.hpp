@@ -283,7 +283,6 @@ private:
         // discard last new line, if existing
         if (str[str.size() - 1] == '\n') str.resize(str.size() - 1);
 
-        finish:
         PARSE_ASSERT(iss_.good(), unexpected EOF while parsing string);
 
         forward();        
