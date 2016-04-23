@@ -241,7 +241,7 @@ private:
         forward();
 
         String str;
-        char_type c;
+        char_type c = '\0';
         bool get_line = false;
         bool nows     = false;
 
