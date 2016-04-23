@@ -241,7 +241,7 @@ private:
         forward();
 
         String str;
-        char_type c;
+        char_type c = '\0';
         bool get_line = false;
         bool nows     = false;
 
@@ -283,7 +283,6 @@ private:
         // discard last new line, if existing
         if (str[str.size() - 1] == '\n') str.resize(str.size() - 1);
 
-        finish:
         PARSE_ASSERT(iss_.good(), unexpected EOF while parsing string);
 
         forward();        

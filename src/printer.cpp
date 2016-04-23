@@ -26,7 +26,7 @@ void printer::visit_null(null& n)
 
 void printer::visit_boolean(boolean& b)
 {
-    *stream_ << b ? "true" : "false";
+    *stream_ << (b ? "true" : "false");
 }
 
 void printer::visit_number(number& n)

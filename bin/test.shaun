@@ -1,0 +1,6 @@
+{
+  preferences: {
+    startpage: "http://google.fr",
+    force_maximized: true
+  }
+}
