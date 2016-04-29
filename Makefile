@@ -8,7 +8,10 @@ LDFLAGS=-Llib/ -lSHAUN
 TEST1=bin/test1
 OBJ_DIR=obj
 LIB_DIR=lib
-LIB=$(LIB_DIR)/libSHAUN.a
+LIBNAME=libSHAUN.a
+LIB=$(LIB_DIR)/$(LIBNAME)
+
+PREFIX=/usr
 
 all:$(LIB_DIR) $(LIB) $(TEST1)
 
@@ -29,6 +32,10 @@ $(OBJ_DIR)/%.o: tests/%.cpp
 
 $(TEST1): $(OBJ_DIR)/test1.o
 	$(CXX) -o $@ $^ $(LDFLAGS)
+
+install: $(LIB)
+	cp $(LIB) $(PREFIX)/lib/$(LIBNAME)
+	cp -r include/* $(PREFIX)/include/
 
 clean:
 	rm -f obj/*
