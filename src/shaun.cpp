@@ -245,6 +245,32 @@ number::Unit number::unit()
     return un;
 }
 
+number::Unit::Unit() : type(Type::None), name("") { }
+
+number::Unit::Unit(const std::string& n) : name(n)
+{
+    if (name == "rad")
+    {
+        type = Type::Rad;
+    }
+    else if (name == "deg")
+    {
+        type = Type::Deg;
+    }
+    else if (name == "")
+    {
+        type = Type::None;
+    }
+    else
+    {
+        type = Type::Custom;
+    }
+}
+
+number::Unit const number::Unit::rad  = number::Unit("rad");
+number::Unit const number::Unit::deg  = number::Unit("deg");
+number::Unit const number::Unit::none = number::Unit();
+
 /*****************************
  *
  *     string functions

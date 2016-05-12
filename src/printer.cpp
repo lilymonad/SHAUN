@@ -32,13 +32,7 @@ void printer::visit_boolean(boolean& b)
 void printer::visit_number(number& n)
 {
     *stream_ << (double)n;
-
-    switch (n.unit())
-    {
-        case number::Unit::deg: *stream_ << "deg"; break;
-        case number::Unit::rad: *stream_ << "rad"; break;
-        default: break;
-    }
+    *stream_ << n.unit().name;
 }
 
 void printer::visit_string(string& s)

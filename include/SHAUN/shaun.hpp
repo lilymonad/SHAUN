@@ -71,7 +71,22 @@ private:
 class number : public shaun
 {
 public:
-    enum class Unit : int { deg, rad, none };
+    class Unit
+    {
+    public:
+        enum Type : int { Rad, Deg, None, Custom };
+
+        Unit();
+
+        Unit(const std::string& n);
+
+        Type type;
+        std::string name;
+
+        static const Unit rad;
+        static const Unit deg;
+        static const Unit none;
+    };
 
     number();
     number(const number& num);
@@ -81,7 +96,6 @@ public:
 
     Unit unit();
     operator double() const { return value; }
-
     
 private:
     double value;

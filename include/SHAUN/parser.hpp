@@ -301,11 +301,10 @@ private:
             forward();
         }
 
-        while (iss_.good() && isalpha(c = iss_.peek()))
-        {
-            unit.push_back(c);
-            forward();
-        }
+        size_t before_unit = iss_.tellg();
+        skipws();
+        unit = parse_name();
+        skipws();
 
         try
         {
@@ -315,7 +314,17 @@ private:
             else if (unit == "rad")
                 return new number(dbl, number::Unit::rad);
             else
-                return new number(dbl, number::Unit::none);
+            {
+                if (iss_.peek() == ':')
+                {
+                    iss_.seekg(before_unit, iss_.beg);
+                    return new number(dbl, number::Unit::none);
+                }
+                else
+                {
+                    return new number(dbl, number::Unit(unit));
+                }
+            }
         }
         catch (const std::invalid_argument&)
         {
