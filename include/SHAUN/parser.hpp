@@ -197,7 +197,8 @@ private:
             forward();
         }
 
-        PARSE_ASSERT(ret != "true" && ret != "false", true or false are invalid names);
+        PARSE_ASSERT(ret != "true" && ret != "false"
+            , true or false are invalid names);
         return ret;
     }
 
@@ -295,7 +296,12 @@ private:
         String num;
         String unit;
         char_type c;
-        while (iss_.good() && ((c = iss_.peek()) == 'E' || c == 'e' || c == '-' || isdigit(c) || c == '.' || c == '+'))
+        while (iss_.good() && ((c = iss_.peek()) == 'E'
+            || c == 'e'
+            || c == '-'
+            || isdigit(c)
+            || c == '.'
+            || c == '+'))
         {
             num.push_back(c);
             forward();
