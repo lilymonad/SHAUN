@@ -6,8 +6,10 @@
 #include <string>
 #include <istream>
 #include <ostream>
+#include <fstream>
 #include <stack>
 #include <utility>
+#include <iostream>
 #include "shaun.hpp"
 #include "exception.hpp"
 
@@ -96,6 +98,21 @@ public:
     {
         iss_.str(iss.str());
         return parse();
+    }
+
+    object& parse_file(const String& str)
+    {
+        std::ifstream file(str);
+        String to_parse;
+
+        file.seekg(0, std::ios::end);
+        to_parse.reserve(file.tellg());
+        file.seekg(0, std::ios::beg);
+
+        to_parse.assign(std::istreambuf_iterator<char_type>(file)
+            , std::istreambuf_iterator<char_type>());
+
+        return parse(to_parse);
     }
 
 private:
@@ -189,6 +206,7 @@ private:
 
     String parse_name()
     {
+        PARSE_ASSERT(isalpha(iss_.peek()) || iss_.peek() == '_', names must start with a letter or '_');
         String ret;
         char_type c;
         while (isalnum(c = iss_.peek()) || c == '_')
@@ -309,7 +327,15 @@ private:
 
         size_t before_unit = iss_.tellg();
         skipws();
-        unit = parse_name();
+        try
+        {
+            unit = parse_name();
+        }
+        catch (...)
+        {
+            unit = "none";
+            iss_.seekg(before_unit, iss_.beg);
+        }
         skipws();
 
         try

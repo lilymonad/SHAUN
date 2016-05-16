@@ -175,7 +175,7 @@ shaun * list::operator[](size_t i)
 }
 
 #define LIST_AT(TYPE) template<>\
-    TYPE& list::at(size_t i)\
+    TYPE& list::at<TYPE>(size_t i)\
     {\
         shaun * ptr = elements_[i].get();\
         if (ptr->type() != Type::TYPE)\
