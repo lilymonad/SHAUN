@@ -35,7 +35,7 @@ public:
     std::string to_string() const
     {
         std::stringstream ss;
-        ss << "parse error at line: " << line_
+        ss << "Parse error at line: " << line_
              << " column: " << column_
              << " (" << error_ << ")";
         return ss.str();

@@ -47,7 +47,7 @@ void printer::visit_list(list& l)
 
     for (unsigned int i = 0; i < l.size(); ++i)
     {
-        visit(*l[i]);
+        visit(l[i]);
         *stream_ << '\n';
         
         if (i == l.size() - 1)

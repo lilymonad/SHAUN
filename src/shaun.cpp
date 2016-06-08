@@ -5,15 +5,22 @@
 #include "visitor.hpp"
 #include "exception.hpp"
 
-#define TYPE_FUN(TYPE) Type TYPE::type() { return Type::TYPE; }
 #define VISIT_FUN(x) void x::visited(visitor& v) { v.visit_ ## x (*this); }
-#define OBJ_GET(x) template<>                              \
-    x& object::get<x> (const std::string& name)            \
-    {                                                      \
-        if (get_variable(name)->type() == Type::x)         \
-            return *(static_cast<x*>(get_variable(name))); \
-                                                           \
-        throw type_error(Type::x, get_variable(name)->type(), name);               \
+#define OBJ_GET(x) template<>                                        \
+    x& object::get<x> (const std::string& name)                      \
+    {                                                                \
+        if (get_variable(name)->type() == Type::x)                   \
+            return *(static_cast<x*>(get_variable(name)));           \
+                                                                     \
+        throw type_error(Type::x, get_variable(name)->type(), name); \
+    }                                                                \
+    template<>                                                       \
+    const x& object::get<x> (const std::string& name) const          \
+    {                                                                \
+        if (get_variable(name)->type() == Type::x)                   \
+            return *(static_cast<const x*>(get_variable(name)));     \
+                                                                     \
+        throw type_error(Type::x, get_variable(name)->type(), name); \
     }
 
 #define OBJ_ADD(x) template<>                                               \
@@ -42,9 +49,19 @@ std::ostream& operator<<(std::ostream& out, const exception& err)
     return out;
 }
 
+shaun::shaun(Type t) : type_(t)
+{
+
+}
+
 bool shaun::is_null()
 {
-    return false;
+    return type_ != Type::null;
+}
+
+Type shaun::type()
+{
+    return type_;
 }
 
 /*****************************
@@ -53,14 +70,13 @@ bool shaun::is_null()
  *
  *****************************/
 
-TYPE_FUN(object)
-VISIT_FUN(object);
+VISIT_FUN(object)
 
-object::object()
+object::object() : shaun(Type::object)
 {
 }
 
-object::object(const object& obj) : variables_(obj.variables_)
+object::object(const object& obj) : shaun(Type::object), variables_(obj.variables_)
 {
 }
 
@@ -74,7 +90,7 @@ object& object::operator=(const object& org)
     return *this;
 }
 
-shaun * object::get_variable(const std::string& name)
+shaun * object::get_variable(const std::string& name) const
 {
     try
     {
@@ -98,6 +114,17 @@ OBJ_ADD(boolean)
 OBJ_ADD(string)
 OBJ_ADD(list)
 
+
+object::iterator object::begin()
+{
+    return variables_.begin();
+}
+
+object::iterator object::end()
+{
+    return variables_.end();
+}
+
 template<> void object::add<null> (const std::string& name, null * ptr) { }
 template<> void object::add<null> (std::pair<std::string, null *> pair) { }
 
@@ -106,11 +133,15 @@ void object::add<shaun> (const std::string& name, shaun * ptr)
 {
     switch (ptr->type())
     {
-        case Type::number: add<number> (name, static_cast<number*>(ptr)); break;
-        case Type::object: add<object> (name, static_cast<object*>(ptr)); break;
-        case Type::boolean: add<boolean> (name, static_cast<boolean*>(ptr)); break;
-        case Type::string: add<string> (name, static_cast<string*>(ptr)); break;
-        case Type::list: add<list> (name, static_cast<list*>(ptr)); break;
+        case Type::number:
+        case Type::object:
+        case Type::boolean:
+        case Type::string:
+        case Type::list:
+            variables_.insert(std::make_pair(name, std::shared_ptr<shaun>(ptr)));
+        break;
+
+        // no pollution
         case Type::null:
         default: break;
     }
@@ -119,10 +150,10 @@ void object::add<shaun> (const std::string& name, shaun * ptr)
 template<>
 void object::add<shaun> (std::pair<std::string, shaun *> pair)
 {
-    add<shaun> (pair.first, pair.second);
+    add(pair.first, pair.second);
 }
 
-Type object::type_of(const std::string& name)
+Type object::type_of(const std::string& name) const
 {
     return get_variable(name)->type();
 }
@@ -143,14 +174,13 @@ const std::map<std::string, std::shared_ptr<shaun> >& object::variables() const
  *
  *****************************/
 
-TYPE_FUN(list)
-VISIT_FUN(list);
+VISIT_FUN(list)
 
-list::list()
+list::list() : shaun(Type::list)
 {
 }
 
-list::list(const list& l) : elements_(l.elements_)
+list::list(const list& l) : shaun(Type::list), elements_(l.elements_)
 {
 }
 
@@ -164,14 +194,29 @@ void list::push_back(shaun * elem)
     elements_.push_back(ptr);
 }
 
+list::iterator list::begin()
+{
+    return elements_.begin();
+}
+
+list::iterator list::end()
+{
+    return elements_.end();
+}
+
 const std::vector<std::shared_ptr<shaun> >& list::elements()
 {
     return elements_;
 }
 
-shaun * list::operator[](size_t i)
+shaun& list::operator[](size_t i)
 {
-    return elements_[i].get();
+    return *elements_[i];
+}
+
+const shaun& list::operator[](size_t i) const
+{
+    return *elements_[i];
 }
 
 #define LIST_AT(TYPE) template<>\
@@ -182,6 +227,15 @@ shaun * list::operator[](size_t i)
             throw type_error(Type::TYPE, ptr->type(), "list element");\
 \
         return *static_cast<TYPE*>(ptr);\
+    }\
+    template<>\
+    const TYPE& list::at<TYPE>(size_t i) const\
+    {\
+        shaun * ptr = elements_[i].get();\
+        if (ptr->type() != Type::TYPE)\
+            throw type_error(Type::TYPE, ptr->type(), "list element");\
+\
+        return *static_cast<const TYPE*>(ptr);\
     }
 
 LIST_AT(list)
@@ -201,19 +255,17 @@ size_t list::size() const
  *
  *****************************/
 
-TYPE_FUN(boolean)
-VISIT_FUN(boolean);
+VISIT_FUN(boolean)
 
-boolean::boolean() : value(false)
+boolean::boolean() : shaun(Type::boolean), value(false)
 {
 }
 
-boolean::boolean(const boolean& b)
+boolean::boolean(const boolean& b) : shaun(Type::boolean), value(b.value)
 {
-    value = b.value;
 }
 
-boolean::boolean(bool yes) : value(yes)
+boolean::boolean(bool yes) : shaun(Type::boolean), value(yes)
 {
 }
 
@@ -223,20 +275,19 @@ boolean::boolean(bool yes) : value(yes)
  *
  *****************************/
 
-TYPE_FUN(number)
-VISIT_FUN(number);
+VISIT_FUN(number)
 
-number::number() : value(0), un(Unit::none)
+number::number() : shaun(Type::number), value(0), un(Unit::none)
 {
 }
 
-number::number(const number& num)
+number::number(const number& num) : shaun(Type::number)
 {
     value = num.value;
     un    = num.un;
 }
 
-number::number(double val, Unit u) : value(val), un(u)
+number::number(double val, Unit u) : shaun(Type::number), value(val), un(u)
 {
 }
 
@@ -277,41 +328,35 @@ number::Unit const number::Unit::none = number::Unit();
  *
  *****************************/
 
-TYPE_FUN(string)
-VISIT_FUN(string);
+VISIT_FUN(string)
 
-string::string()
+string::string() : shaun(Type::string)
 {
 }
 
-string::string(const string& str)
+string::string(const string& str) : shaun(Type::string)
 {
     value = str.value;
 }
 
-string::string(const std::string& str)
+string::string(const std::string& str) : shaun(Type::string)
 {
     value = str;
 }
+
 /*****************************
  *
  *     null functions
  *
  *****************************/
- 
-TYPE_FUN(null)
+
 VISIT_FUN(null)
 
-null::null()
+null::null() : shaun(Type::null)
 {
 }
 
 null null::Null;
-
-bool null::is_null()
-{
-    return true;
-}
 
 std::string type_to_string(Type t)
 {

@@ -6,16 +6,12 @@
 namespace shaun
 {
 
-sweeper::sweeper(shaun * root)
+sweeper::sweeper(shaun * root) : root_(root), name_("root")
 {
-    root_ = root;
-    name_ = "root";
 }
 
-sweeper::sweeper(const sweeper& swp)
+sweeper::sweeper(const sweeper& swp) : root_(swp.root_), name_(swp.name_)
 {
-    name_ = swp.name_;
-    root_ = swp.root_;
 }
 
 sweeper::~sweeper()

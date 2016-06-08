@@ -19,12 +19,15 @@ class shaun
 public:    
     virtual ~shaun() {}
 
-    virtual Type type() = 0;
-
-    virtual bool is_null();
+    Type type();
+    bool is_null();
 
     virtual void visited(visitor& v) = 0;
 protected:
+    shaun() = delete;
+    shaun(Type t);
+
+    Type type_;
 };
 
 
@@ -34,22 +37,29 @@ class list : public shaun
 public:
   
     using vector = std::vector<std::shared_ptr<shaun> >;
+    using iterator = vector::iterator;
     
     list();
     list(const list& l);
     ~list();
-    Type type();
     void visited(visitor& v);
 
     void push_back(shaun * elem);
+    iterator begin();
+    iterator end();
     const vector& elements();
 
-    shaun * operator[](size_t i);
+    shaun& operator[](size_t i);
+    const shaun& operator[](size_t i) const;
 
     template<class C>
     C& at(size_t i);
+
+    template<class C>
+    const C& at(size_t i) const;
     
     size_t size() const;
+
 private:
     vector elements_;
 };
@@ -60,10 +70,9 @@ public:
     boolean();
     boolean(const boolean& b);
     boolean(bool yes);
-    Type type();
     void visited(visitor& v);
 
-    operator bool() const { return value; } 
+    explicit operator bool() const { return value; }
 private:
     bool value;
 };
@@ -91,11 +100,10 @@ public:
     number();
     number(const number& num);
     number(double val, Unit u);
-    Type type();
     void visited(visitor& v);
 
     Unit unit();
-    operator double() const { return value; }
+    explicit operator double() const { return value; }
     
 private:
     double value;
@@ -108,7 +116,6 @@ public:
     string();
     string(const string& str);
     string(const std::string& str);
-    Type type();
     void visited(visitor& v);
 
     explicit operator std::string() const
@@ -126,19 +133,20 @@ public:
     Type type();
     void visited(visitor& v);
 
-    bool is_null();
-
     static null Null;
 };
 
 class object : public shaun
 {
 public:
+    using map = std::map<std::string, std::shared_ptr<shaun> >;
+    using iterator = map::iterator;
+
     friend class sweeper;
+
     object();
     object(const object& obj);
     ~object();
-    Type type();
     void visited(visitor& v);
 
     object& operator=(const object& obj);
@@ -149,17 +157,23 @@ public:
     template<class C>
     void add(const std::string& name, C * ptr);
 
+    iterator begin();
+    iterator end();
+
     template<class C>
     C& get(const std::string& name);
 
-    Type type_of(const std::string& name);
+    template<class C>
+    const C& get(const std::string& name) const;
+
+    Type type_of(const std::string& name) const;
     
     size_t size() const;
 
     const std::map<std::string, std::shared_ptr<shaun> >& variables() const;
 private:
 
-    shaun * get_variable(const std::string& name);
+    shaun * get_variable(const std::string& name) const;
     std::map<std::string, std::shared_ptr<shaun> > variables_;
 };
 
