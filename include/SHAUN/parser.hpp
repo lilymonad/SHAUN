@@ -399,6 +399,30 @@ private:
         return ret;
     }
 
+    template<typename T> int signum(T val)
+    {
+        return (T(0) < val) - (val < T(0));
+    }
+
+    double parse_double(const std::string& str)
+    {
+        size_t fin_entier = str.find_first_not_of("+-0123456789");
+        std::string entier = str.substr(0, fin_entier);
+        long long int partie_entiere = 0;
+        char signe = 0;
+        if (entier.size() == 0 || (entier.size() == 1 && (entier[0] == '-' || entier[0] == '+')))
+        {
+            signe = (entier.size() == 0 || entier[0] == '+') ? 1 : -1;
+        }
+        else
+        {
+            partie_entiere = std::stoll(entier);
+            signe = signum(partie_entiere);
+        }
+
+        std::string decimal = std::
+    }
+
     Stream iss_;
     size_t line_;
     size_t column_;
