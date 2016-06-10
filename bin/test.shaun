@@ -2,6 +2,6 @@
   preferences: {
     startpage: "http://google.fr",
     force_maximized: true
-    number1: 12 rad   number2: 13   last_one: "prout"
+    number1: 12.3 rad   number2: 13   last_one: "prout"
   }
 }

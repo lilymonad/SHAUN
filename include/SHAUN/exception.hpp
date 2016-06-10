@@ -1,7 +1,7 @@
 #ifndef EXCEPTION_HPP
 #define EXCEPTION_HPP
 
-#include "shaun.hpp"
+#include <SHAUN/shaun.hpp>
 #include <sstream>
 
 namespace shaun

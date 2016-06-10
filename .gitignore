@@ -2,3 +2,4 @@
 obj/
 lib/
 src/main.cpp
+bin/*

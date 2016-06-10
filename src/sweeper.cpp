@@ -1,5 +1,5 @@
-#include "sweeper.hpp"
-#include "exception.hpp"
+#include <SHAUN/sweeper.hpp>
+#include <SHAUN/exception.hpp>
 #include <sstream>
 #include <string>
 

@@ -3,8 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-#include "parser.hpp"
-#include "printer.hpp"
+#include <SHAUN/parser.hpp>
+#include <SHAUN/printer.hpp>
 
 int main(void)
 {

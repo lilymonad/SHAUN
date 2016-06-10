@@ -1,7 +1,7 @@
 #ifndef VISITOR_HPP
 #define VISITOR_HPP
 
-#include "shaun.hpp"
+#include <SHAUN/shaun.hpp>
 #include <cstddef>
 
 namespace shaun

@@ -22,6 +22,7 @@ public:
     Type type();
     bool is_null();
 
+    virtual int index_of(shaun * child) const;
     virtual void visited(visitor& v) = 0;
 protected:
     shaun() = delete;
@@ -41,6 +42,7 @@ public:
     
     list();
     list(const list& l);
+
     ~list();
     void visited(visitor& v);
 
@@ -59,6 +61,7 @@ public:
     const C& at(size_t i) const;
     
     size_t size() const;
+    virtual int index_of(shaun *child) const;
 
 private:
     vector elements_;
@@ -70,6 +73,7 @@ public:
     boolean();
     boolean(const boolean& b);
     boolean(bool yes);
+
     void visited(visitor& v);
 
     explicit operator bool() const { return value; }
@@ -100,6 +104,7 @@ public:
     number();
     number(const number& num);
     number(double val, Unit u);
+
     void visited(visitor& v);
 
     Unit unit();
@@ -116,6 +121,7 @@ public:
     string();
     string(const string& str);
     string(const std::string& str);
+
     void visited(visitor& v);
 
     explicit operator std::string() const
@@ -130,7 +136,7 @@ class null : public shaun
 {
 public:
     null();
-    Type type();
+
     void visited(visitor& v);
 
     static null Null;
@@ -146,6 +152,7 @@ public:
 
     object();
     object(const object& obj);
+
     ~object();
     void visited(visitor& v);
 
@@ -169,6 +176,7 @@ public:
     Type type_of(const std::string& name) const;
     
     size_t size() const;
+    virtual int index_of(shaun *child) const;
 
     const std::map<std::string, std::shared_ptr<shaun> >& variables() const;
 private:

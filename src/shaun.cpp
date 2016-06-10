@@ -1,9 +1,11 @@
-#include "shaun.hpp"
+#include <SHAUN/shaun.hpp>
 #include <utility>
+#include <algorithm>
+#include <set>
 #include <sstream>
 #include <iostream>
-#include "visitor.hpp"
-#include "exception.hpp"
+#include <SHAUN/visitor.hpp>
+#include <SHAUN/exception.hpp>
 
 #define VISIT_FUN(x) void x::visited(visitor& v) { v.visit_ ## x (*this); }
 #define OBJ_GET(x) template<>                                        \
@@ -57,6 +59,11 @@ shaun::shaun(Type t) : type_(t)
 bool shaun::is_null()
 {
     return type_ != Type::null;
+}
+
+int shaun::index_of(shaun *child) const
+{
+    return -1;
 }
 
 Type shaun::type()
@@ -168,6 +175,14 @@ const std::map<std::string, std::shared_ptr<shaun> >& object::variables() const
     return variables_;
 }
 
+int object::index_of(shaun * child) const
+{
+    std::set<shaun*> elems;
+    std::transform(variables_.begin(), variables_.end(), std::inserter(elems, elems.begin())
+                   , [](const std::pair<std::string, std::shared_ptr<shaun> >& p) { return p.second.get(); });
+    return std::distance(elems.begin(), elems.find(child));
+}
+
 /*****************************
  *
  *     list functions
@@ -247,6 +262,11 @@ LIST_AT(string)
 size_t list::size() const
 {
   return elements_.size();
+}
+
+int list::index_of(shaun *child) const
+{
+    return std::distance(elements_.begin(), std::find(elements_.begin(), elements_.end(), std::shared_ptr<shaun>(child)));
 }
 
 /*****************************

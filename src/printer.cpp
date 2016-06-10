@@ -1,4 +1,4 @@
-#include "printer.hpp"
+#include <SHAUN/printer.hpp>
 
 namespace shaun
 {

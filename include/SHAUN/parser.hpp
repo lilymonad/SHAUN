@@ -10,8 +10,8 @@
 #include <stack>
 #include <utility>
 #include <iostream>
-#include "shaun.hpp"
-#include "exception.hpp"
+#include <SHAUN/shaun.hpp>
+#include <SHAUN/exception.hpp>
 
 #define PARSE_ERROR(str) throw parse_error(line_, column_, #str)
 #define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
@@ -340,7 +340,7 @@ private:
 
         try
         {
-            double dbl = stod(num);
+            double dbl = std::stod(num);
             if (unit == "deg")
                 return new number(dbl, number::Unit::deg);
             else if (unit == "rad")
