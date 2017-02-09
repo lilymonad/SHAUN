@@ -1,6 +1,7 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include <clocale>
 #include <cctype>
 #include <sstream>
 #include <string>
@@ -31,7 +32,7 @@ public:
     parser() { parsed = 0; }
     parser(const String& str)
     {
-         parsed = 0; 
+        parsed = 0; 
         iss_.str(str);
     }
 
@@ -49,10 +50,18 @@ public:
 
     object& parse()
     {
+        // Changing the locale for "C" number parsing system
+        // the old locale is saved to be restored after the
+        // parsing, as some applications use a different one
+        char * old_locale = setlocale(LC_NUMERIC, NULL);
+        setlocale(LC_NUMERIC, "C");
+
+        // init the parsing state
         line_ = column_ = 0;
         if (parsed) delete parsed;
         parsed = 0;
         
+        // loop through the whole stream
         while (iss_.good())
         {
             skipws();
@@ -84,6 +93,8 @@ public:
         }
 
         PARSE_ASSERT(parsed, what ?);
+        
+        setlocale(LC_NUMERIC, old_locale);
 
         return *parsed;
     }
@@ -269,12 +280,21 @@ private:
         {
             if (!isspace(c)) nows = true;
 
-            str.push_back(c);
+            // skipped characters
+            if (c == '\\')
+            {
+              forward();
+              str.push_back(iss_.peek());
+            }
+            else
+            {
+              str.push_back(c);
+            }
             forward();
         }
 
         // if only spaces and multiline string, discard spaces
-        if (nows && c == '\n')
+        if (!nows && c == '\n')
         {
             str.resize(0);
         }
@@ -292,7 +312,15 @@ private:
             }
             else if (column_ >= start_col || get_line || !isspace(c))
             {
-                str.push_back(c);
+                // skipped characters
+                if (c == '\\')
+                {
+                  forward();
+                  str.push_back(iss_.peek());
+                }
+                else
+                  str.push_back(c);
+
                 get_line = true;
             }
 
@@ -341,22 +369,15 @@ private:
         try
         {
             double dbl = std::stod(num);
-            if (unit == "deg")
-                return new number(dbl, number::Unit::deg);
-            else if (unit == "rad")
-                return new number(dbl, number::Unit::rad);
-            else
-            {
                 if (iss_.peek() == ':')
                 {
                     iss_.seekg(before_unit, iss_.beg);
-                    return new number(dbl, number::Unit::none);
+                    return new number(dbl, "");
                 }
                 else
                 {
-                    return new number(dbl, number::Unit(unit));
+                    return new number(dbl, unit);
                 }
-            }
         }
         catch (const std::invalid_argument&)
         {
@@ -402,25 +423,6 @@ private:
     template<typename T> int signum(T val)
     {
         return (T(0) < val) - (val < T(0));
-    }
-
-    double parse_double(const std::string& str)
-    {
-        size_t fin_entier = str.find_first_not_of("+-0123456789");
-        std::string entier = str.substr(0, fin_entier);
-        long long int partie_entiere = 0;
-        char signe = 0;
-        if (entier.size() == 0 || (entier.size() == 1 && (entier[0] == '-' || entier[0] == '+')))
-        {
-            signe = (entier.size() == 0 || entier[0] == '+') ? 1 : -1;
-        }
-        else
-        {
-            partie_entiere = std::stoll(entier);
-            signe = signum(partie_entiere);
-        }
-
-        std::string decimal = std::
     }
 
     Stream iss_;

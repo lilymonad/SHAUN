@@ -6,7 +6,7 @@
 
 namespace shaun
 {
-  
+ 
 class exception
 {
 public:

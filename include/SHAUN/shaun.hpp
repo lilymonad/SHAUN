@@ -22,7 +22,15 @@ public:
     Type type();
     bool is_null();
 
+    /**
+     * returns the index of a potential child
+     * node of the current node
+     */
     virtual int index_of(shaun * child) const;
+
+    /**
+     * node part of the visitor pattern
+     */
     virtual void visited(visitor& v) = 0;
 protected:
     shaun() = delete;
@@ -44,19 +52,36 @@ public:
     list(const list& l);
 
     ~list();
+
+    // cf. shaun::visited()
     void visited(visitor& v);
 
+    /**
+     * same as std::vector
+     */
     void push_back(shaun * elem);
+
+    /**
+     * c++11 foreach loop integration
+     */
     iterator begin();
     iterator end();
+
+    /**
+     * returns the underlying vector of the list
+     */
     const vector& elements();
 
     shaun& operator[](size_t i);
     const shaun& operator[](size_t i) const;
 
+    /**
+     * different from operator[]
+     * as it can return a casted value
+     * (i.e. list.at<double>(0) can return a double from a shaun::number)
+     */
     template<class C>
     C& at(size_t i);
-
     template<class C>
     const C& at(size_t i) const;
     
@@ -84,35 +109,18 @@ private:
 class number : public shaun
 {
 public:
-    class Unit
-    {
-    public:
-        enum Type : int { Rad, Deg, None, Custom };
-
-        Unit();
-
-        Unit(const std::string& n);
-
-        Type type;
-        std::string name;
-
-        static const Unit rad;
-        static const Unit deg;
-        static const Unit none;
-    };
-
     number();
     number(const number& num);
-    number(double val, Unit u);
+    number(double val, const std::string& u);
 
     void visited(visitor& v);
 
-    Unit unit();
+    const std::string& unit();
     explicit operator double() const { return value; }
     
 private:
     double value;
-    Unit un;
+    std::string un;
 };
 
 class string : public shaun

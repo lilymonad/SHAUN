@@ -32,12 +32,27 @@ void printer::visit_boolean(boolean& b)
 void printer::visit_number(number& n)
 {
     *stream_ << (double)n;
-    *stream_ << n.unit().name;
+    *stream_ << n.unit();
 }
 
 void printer::visit_string(string& s)
 {
-    *stream_ << '"' << (std::string)s << '"';
+    std::string to_print;
+    for (c : (std::string)s)
+    {
+      switch (c)
+      {
+        case '\\':
+        case '"':
+          to_print.push_back('\\');
+          break;
+        default:
+          break;
+      }
+      to_print.push_back(c);
+    }
+
+    *stream_ << '"' << to_print << '"';
 }
 
 void printer::visit_list(list& l)

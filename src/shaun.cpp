@@ -297,7 +297,7 @@ boolean::boolean(bool yes) : shaun(Type::boolean), value(yes)
 
 VISIT_FUN(number)
 
-number::number() : shaun(Type::number), value(0), un(Unit::none)
+number::number() : shaun(Type::number), value(0), un("")
 {
 }
 
@@ -307,40 +307,14 @@ number::number(const number& num) : shaun(Type::number)
     un    = num.un;
 }
 
-number::number(double val, Unit u) : shaun(Type::number), value(val), un(u)
+number::number(double val, const std::string& u) : shaun(Type::number), value(val), un(u)
 {
 }
 
-number::Unit number::unit()
+const std::string& number::unit()
 {
     return un;
 }
-
-number::Unit::Unit() : type(Type::None), name("") { }
-
-number::Unit::Unit(const std::string& n) : name(n)
-{
-    if (name == "rad")
-    {
-        type = Type::Rad;
-    }
-    else if (name == "deg")
-    {
-        type = Type::Deg;
-    }
-    else if (name == "")
-    {
-        type = Type::None;
-    }
-    else
-    {
-        type = Type::Custom;
-    }
-}
-
-number::Unit const number::Unit::rad  = number::Unit("rad");
-number::Unit const number::Unit::deg  = number::Unit("deg");
-number::Unit const number::Unit::none = number::Unit();
 
 /*****************************
  *
