@@ -5,7 +5,7 @@ LDFLAGS=-Llib/ -lSHAUN
 
 .PHONY: all clean
 
-BIN_DIR = bin
+BIN_DIR=bin
 TEST1=$(BIN_DIR)/test1
 OBJ_DIR=obj
 LIB_DIR=lib
@@ -14,7 +14,8 @@ LIB=$(LIB_DIR)/$(LIBNAME)
 
 PREFIX=/usr
 
-all:$(BIN_DIR) $(LIB_DIR) $(LIB) $(TEST1)
+all:directories $(LIB) $(TEST1)
+directories:$(OBJ_DIR) $(BIN_DIR) $(LIB_DIR)
 test1:$(TEST1)
 
 # Create folders
@@ -30,15 +31,15 @@ $(LIB): $(OBJ_DIR)/shaun.o $(OBJ_DIR)/printer.o $(OBJ_DIR)/sweeper.o
 	ar -rcs $@ $^
 
 # Build objects
-$(OBJ_DIR)/%.o: src/%.cpp $(OBJ_DIR)
+$(OBJ_DIR)/%.o: src/%.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
-$(OBJ_DIR)/%.o: tests/%.cpp $(OBJ_DIR)
+$(OBJ_DIR)/%.o: tests/%.cpp
 	$(CXX) -o $@ -c $< $(CXXFLAGS)
 
 # Build tests
-$(TEST1): $(OBJ_DIR)/test1.o
-	$(CXX) -o $@ $^ $(LDFLAGS)
+$(TEST1): $(OBJ_DIR)/test1.o $(LIB)
+	$(CXX) -o $@ $< $(LDFLAGS)
 
 # Install
 install: $(LIB)
@@ -47,6 +48,6 @@ install: $(LIB)
 
 # Clean
 clean:
-	rm -rf obj
-	rm -rf lib
-	rm -rf bin
+	rm -f obj/*
+	rm -f lib/*
+	rm -f bin/*
