@@ -56,7 +56,7 @@ shaun::shaun(Type t) : type_(t)
 
 }
 
-bool shaun::is_null()
+bool shaun::is_null() const
 {
     return type_ != Type::null;
 }
@@ -66,7 +66,7 @@ int shaun::index_of(shaun *child) const
     return -1;
 }
 
-Type shaun::type()
+Type shaun::type() const
 {
     return type_;
 }
@@ -128,6 +128,16 @@ object::iterator object::begin()
 }
 
 object::iterator object::end()
+{
+    return variables_.end();
+}
+
+object::const_iterator object::begin() const
+{
+    return variables_.begin();
+}
+
+object::const_iterator object::end() const
 {
     return variables_.end();
 }
@@ -215,6 +225,16 @@ list::iterator list::begin()
 }
 
 list::iterator list::end()
+{
+    return elements_.end();
+}
+
+list::const_iterator list::begin() const
+{
+    return elements_.begin();
+}
+
+list::const_iterator list::end() const
 {
     return elements_.end();
 }
@@ -311,7 +331,7 @@ number::number(double val, const std::string& u) : shaun(Type::number), value(va
 {
 }
 
-const std::string& number::unit()
+const std::string& number::unit() const
 {
     return un;
 }

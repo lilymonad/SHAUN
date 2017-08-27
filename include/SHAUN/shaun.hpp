@@ -19,8 +19,8 @@ class shaun
 public:    
     virtual ~shaun() {}
 
-    Type type();
-    bool is_null();
+    Type type() const;
+    bool is_null() const;
 
     /**
      * returns the index of a potential child
@@ -47,6 +47,7 @@ public:
   
     using vector = std::vector<std::shared_ptr<shaun> >;
     using iterator = vector::iterator;
+    using const_iterator = vector::const_iterator;
     
     list();
     list(const list& l);
@@ -65,7 +66,9 @@ public:
      * c++11 foreach loop integration
      */
     iterator begin();
+    const_iterator begin() const;
     iterator end();
+    const_iterator end() const;
 
     /**
      * returns the underlying vector of the list
@@ -115,8 +118,8 @@ public:
 
     void visited(visitor& v);
 
-    const std::string& unit();
-    explicit operator double() const { return value; }
+    const std::string& unit() const;
+    operator double() const { return value; }
     
 private:
     double value;
@@ -132,7 +135,7 @@ public:
 
     void visited(visitor& v);
 
-    explicit operator std::string() const
+    operator std::string() const
     {
         return value;
     }
@@ -155,6 +158,7 @@ class object : public shaun
 public:
     using map = std::map<std::string, std::shared_ptr<shaun> >;
     using iterator = map::iterator;
+    using const_iterator = map::const_iterator;
 
     friend class sweeper;
 
@@ -173,7 +177,9 @@ public:
     void add(const std::string& name, C * ptr);
 
     iterator begin();
+    const_iterator begin() const;
     iterator end();
+    const_iterator end() const;
 
     template<class C>
     C& get(const std::string& name);
