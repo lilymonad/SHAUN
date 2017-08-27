@@ -1,7 +1,0 @@
-{ preferences: { force_maximized: true
-                 last_one: "prout"
-                 number1: 12.3rad
-                 number2: 13
-                 startpage: "http://google.fr"
-               }
-}

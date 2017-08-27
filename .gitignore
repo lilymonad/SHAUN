@@ -1,5 +1,5 @@
 *.hs
-obj/
-lib/
+obj
+lib
 src/main.cpp
-bin/*
+bin

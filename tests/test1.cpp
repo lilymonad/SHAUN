@@ -11,14 +11,13 @@ int main(void)
     try
     {
         shaun::parser p;
-        std::ifstream file("test.shaun");
-        std::ofstream file2("lel.shaun");
+        std::ifstream file("../resources/test.shaun");
         std::stringstream buffer; 
         buffer << file.rdbuf();
 
         shaun::object obj = p.parse(buffer.str());
 
-        shaun::printer pr(&file2);
+        shaun::printer pr(&std::cout);
         pr.visit(obj);
     }
     catch (shaun::parse_error e)
