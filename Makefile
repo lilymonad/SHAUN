@@ -27,7 +27,7 @@ $(BIN_DIR):
 	mkdir -p $@
 
 # Build lib
-$(LIB): $(OBJ_DIR)/shaun.o $(OBJ_DIR)/printer.o $(OBJ_DIR)/sweeper.o
+$(LIB): $(OBJ_DIR)/shaun.o $(OBJ_DIR)/printer.o $(OBJ_DIR)/sweeper.o $(OBJ_DIR)/parser.o
 	ar -rcs $@ $^
 
 # Build objects
