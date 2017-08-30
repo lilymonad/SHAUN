@@ -265,6 +265,18 @@ std::string object::get_with_default<std::string>(const std::string& def, const 
   }
 }
 
+std::string object::get_with_default(const char * def, const std::string& name) const
+{
+  try
+  {
+    return get<string>(name);
+  }
+  catch (...)
+  {
+    return std::string(def);
+  }
+}
+
 OBJ_ADD(number)
 OBJ_ADD(object)
 OBJ_ADD(boolean)
@@ -287,6 +299,20 @@ OBJ_ADD_PRIM_TO_NUMBER(long double)
 
 OBJ_ADD_PRIM_TO_STRING(std::string)
 //OBJ_ADD_PRIM_TO_STRING(const char *)
+
+void object::add(const std::string& name, const char *v)
+{
+    shaun * ptr = new string(v);
+    std::shared_ptr<shaun> to_add(ptr);
+    variables_.insert(std::make_pair(name, to_add));
+}
+
+void object::add(std::pair<std::string, const char*> pair)
+{
+    shaun * ptr = new string(pair.second);
+    std::shared_ptr<shaun> to_add(ptr);
+    variables_.insert(std::make_pair(pair.first, to_add));
+}
   
 object::iterator object::begin()
 {

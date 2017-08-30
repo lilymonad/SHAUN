@@ -47,7 +47,7 @@ bool object_primitive_attributes()
     o.add("x", 10);
     o.add("y", 10.0);
     o.add("b", true);
-    o.add("s", "hello"s);
+    o.add("s", "hello");
 
     ofstream file("../resources/test2_out.shaun");
     shaun::printer pr(&file);
@@ -70,7 +70,8 @@ bool get_with_default()
 {
   shaun::object o;
   o.add("x", 10);
-  return o.get_with_default("default"s, "monattribut") == "default" && (double)o.get_with_default(0, "x") == 10;
+  return o.get_with_default("default", "monattribut") == "default" && 
+    (double)o.get_with_default(0, "x") == 10;
 }
 
 #define MAKE_TEST(name) (UnitTest(#name, name))

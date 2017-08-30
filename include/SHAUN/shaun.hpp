@@ -264,8 +264,18 @@ public:
     template<class C>
     void add(std::pair<std::string, const C&> pair);
 
+    void add(std::pair<std::string, const char*> pair);
+
+    //template<class C>
+    //void add(std::pair<std::string, const C> pair);
+
     template<class C>
     void add(const std::string& name, const C& ptr);
+    
+    void add(const std::string& name, const char *ptr);
+
+    //template<class C>
+    //void add(const std::string& name, const C ptr);
 
     iterator begin();
     const_iterator begin() const;
@@ -277,6 +287,7 @@ public:
 
     template<class C>
     C get_with_default(const C&, const std::string&) const;
+    std::string get_with_default(const char * def, const std::string& name) const;
 
     template<class C>
     const C& get(const std::string& name) const;
