@@ -92,7 +92,7 @@ private:
                 while (iss_->good())
                 {
                     auto sh = parse_variable();
-                    parsed.add<shaun>(sh.first, *sh.second);
+                    parsed.add<const shaun&>(sh.first, *sh.second);
                     delete sh.second;
                     skipws();
                 }
@@ -177,7 +177,7 @@ private:
         while (iss_->good() && iss_->peek() != '}')
         {
           auto sh = parse_variable();
-            obj.add<shaun>(sh.first, *sh.second);
+            obj.add<const shaun&>(sh.first, *sh.second);
             delete sh.second;
             skipws();
         }

@@ -27,7 +27,7 @@ const char * NULL_STRING = "";
         throw type_error(Type::x, get_variable(name)->type(), name); \
     }\
     template<>\
-    x object::get_with_default<x>(const x& def, const std::string& name) const\
+    x object::get_with_default<x>(x def, const std::string& name) const\
     {\
       try\
       {\
@@ -40,7 +40,7 @@ const char * NULL_STRING = "";
     }
 
 #define OBJ_GET_DEF_BOOL(x) template<>\
-    x object::get_with_default<x>(const x& def, const std::string& name) const\
+    x object::get_with_default<x>(x def, const std::string& name) const\
     {\
       try\
       {\
@@ -52,7 +52,7 @@ const char * NULL_STRING = "";
       }\
     }
 #define OBJ_GET_DEF_NUM(x) template<>\
-    x object::get_with_default<x>(const x& def, const std::string& name) const\
+    x object::get_with_default<x>(x def, const std::string& name) const\
     {\
       try\
       {\
@@ -64,9 +64,22 @@ const char * NULL_STRING = "";
       }\
     }
 
+#define OBJ_GET_DEF_STR(x) template<>\
+    x object::get_with_default<x>(x def, const std::string& name) const\
+    {\
+      try\
+      {\
+        return get<string>(name);\
+      }\
+      catch (...)\
+      {\
+        return def;\
+      }\
+    }
+
 
 #define OBJ_ADD(x) template<>                                               \
-    void object::add<x> (const std::string& name, const x& v)               \
+    void object::add<x> (const std::string& name, x v)                      \
     {                                                                       \
         x * ptr = new x(v);                                                 \
         std::shared_ptr<shaun> to_add(ptr);                                 \
@@ -74,7 +87,7 @@ const char * NULL_STRING = "";
     }                                                                       \
                                                                             \
     template<>                                                              \
-    void object::add<x> (std::pair<std::string, const x&> pair)                    \
+    void object::add<x> (std::pair<std::string, x> pair)                    \
     {                                                                       \
         x * ptr = new x(pair.second);                                       \
         std::shared_ptr<shaun> to_add(ptr);                                 \
@@ -82,58 +95,52 @@ const char * NULL_STRING = "";
     }
 
 #define OBJ_ADD_PRIM_TO_BOOLEAN(x) template<>                               \
-  void object::add<x> (const std::string& name, const x& v)                 \
-  {\
-    shaun * ptr = new boolean(v);\
-    std::shared_ptr<shaun> to_add(ptr);\
-    variables_.insert(std::make_pair(name, to_add));\
-  }                                                                       \
+  void object::add<x> (const std::string& name, x v)                        \
+  {                                                                         \
+    shaun * ptr = new boolean(v);                                           \
+    std::shared_ptr<shaun> to_add(ptr);                                     \
+    variables_.insert(std::make_pair(name, to_add));                        \
+  }                                                                         \
                                                                             \
     template<>                                                              \
-    void object::add<x> (std::pair<std::string, const x&> pair)                    \
+    void object::add<x> (std::pair<std::string, x> pair)                    \
     {                                                                       \
-        shaun * ptr = new boolean(pair.second);                                       \
+        shaun * ptr = new boolean(pair.second);                             \
         std::shared_ptr<shaun> to_add(ptr);                                 \
         variables_.insert(std::make_pair(pair.first, to_add));              \
     }
 
-#define OBJ_ADD_PRIM_TO_NUMBER(x) template<>                               \
-  void object::add<x> (const std::string& name, const x& v)                 \
-  {\
-    shaun * ptr = new number(v);\
-    std::shared_ptr<shaun> to_add(ptr);\
-    variables_.insert(std::make_pair(name, to_add));\
-  }                                                                       \
+#define OBJ_ADD_PRIM_TO_NUMBER(x) template<>                                \
+  void object::add<x> (const std::string& name, x v)                        \
+  {                                                                         \
+    shaun * ptr = new number(v);                                            \
+    std::shared_ptr<shaun> to_add(ptr);                                     \
+    variables_.insert(std::make_pair(name, to_add));                        \
+  }                                                                         \
                                                                             \
     template<>                                                              \
-    void object::add<x> (std::pair<std::string, const x&> pair)                    \
+    void object::add<x> (std::pair<std::string, x> pair)                    \
     {                                                                       \
-        shaun * ptr = new number(pair.second);                                       \
+        shaun * ptr = new number(pair.second);                              \
         std::shared_ptr<shaun> to_add(ptr);                                 \
         variables_.insert(std::make_pair(pair.first, to_add));              \
     }
 
-
-
-#define OBJ_ADD_PRIM_TO_STRING(x) template<>                               \
-  void object::add<x> (const std::string& name, x const & v)                 \
-  {\
-    shaun * ptr = new string(v);\
-    std::shared_ptr<shaun> to_add(ptr);\
-    variables_.insert(std::make_pair(name, to_add));\
-  }                                                                       \
+#define OBJ_ADD_PRIM_TO_STRING(x) template<>                                \
+    void object::add<x> (const std::string& name, x v)                      \
+    {                                                                       \
+        shaun * ptr = new string(v);                                        \
+        std::shared_ptr<shaun> to_add(ptr);                                 \
+        variables_.insert(std::make_pair(name, to_add));                    \
+    }                                                                       \
                                                                             \
     template<>                                                              \
-    void object::add<x> (std::pair<std::string, x const &> pair)                    \
+    void object::add<x> (std::pair<std::string, x> pair)                    \
     {                                                                       \
-        shaun * ptr = new string(pair.second);                                       \
+        shaun * ptr = new string(pair.second);                              \
         std::shared_ptr<shaun> to_add(ptr);                                 \
         variables_.insert(std::make_pair(pair.first, to_add));              \
     }
-
-
-
-
 
 namespace shaun
 {
@@ -236,7 +243,6 @@ OBJ_GET(number)
 OBJ_GET(object)
 OBJ_GET(boolean)
 OBJ_GET(string)
-OBJ_GET(list)
 OBJ_GET_DEF_BOOL(bool)
 
 OBJ_GET_DEF_NUM(char)
@@ -252,30 +258,7 @@ OBJ_GET_DEF_NUM(float)
 OBJ_GET_DEF_NUM(double)
 OBJ_GET_DEF_NUM(long double)
 
-template<>
-std::string object::get_with_default<std::string>(const std::string& def, const std::string& name) const
-{
-  try
-  {
-    return get<string>(name);
-  }
-  catch (...)
-  {
-    return def;
-  }
-}
-
-std::string object::get_with_default(const char * def, const std::string& name) const
-{
-  try
-  {
-    return get<string>(name);
-  }
-  catch (...)
-  {
-    return std::string(def);
-  }
-}
+OBJ_GET_DEF_STR(std::string)
 
 OBJ_ADD(number)
 OBJ_ADD(object)
@@ -298,21 +281,8 @@ OBJ_ADD_PRIM_TO_NUMBER(double)
 OBJ_ADD_PRIM_TO_NUMBER(long double)
 
 OBJ_ADD_PRIM_TO_STRING(std::string)
-//OBJ_ADD_PRIM_TO_STRING(const char *)
-
-void object::add(const std::string& name, const char *v)
-{
-    shaun * ptr = new string(v);
-    std::shared_ptr<shaun> to_add(ptr);
-    variables_.insert(std::make_pair(name, to_add));
-}
-
-void object::add(std::pair<std::string, const char*> pair)
-{
-    shaun * ptr = new string(pair.second);
-    std::shared_ptr<shaun> to_add(ptr);
-    variables_.insert(std::make_pair(pair.first, to_add));
-}
+OBJ_ADD_PRIM_TO_STRING(const std::string)
+OBJ_ADD_PRIM_TO_STRING(const char *)
   
 object::iterator object::begin()
 {
@@ -334,11 +304,11 @@ object::const_iterator object::end() const
     return variables_.end();
 }
 
-template<> void object::add<null> (const std::string&, const null&) { }
-template<> void object::add<null> (std::pair<std::string, const null&>) { }
+template<> void object::add<null> (const std::string&, null) { }
+template<> void object::add<null> (std::pair<std::string, null>) { }
 
 template<>
-void object::add<shaun> (const std::string& name, const shaun& ptr)
+void object::add<const shaun&> (const std::string& name, const shaun &ptr)
 {
     switch (ptr.type())
     {
@@ -365,9 +335,9 @@ void object::add<shaun> (const std::string& name, const shaun& ptr)
 }
 
 template<>
-void object::add<shaun> (std::pair<std::string, const shaun&> pair)
+void object::add<const shaun&> (std::pair<std::string, const shaun&> pair)
 {
-    add(pair.first, pair.second);
+    add<const shaun&>(pair.first, pair.second);
 }
 
 Type object::type_of(const std::string& name) const

@@ -70,7 +70,7 @@ bool get_with_default()
 {
   shaun::object o;
   o.add("x", 10);
-  return o.get_with_default("default", "monattribut") == "default" && 
+  return o.get_with_default<std::string>("default", "monattribut") == "default" && 
     (double)o.get_with_default(0, "x") == 10;
 }
 
@@ -80,7 +80,7 @@ bool list_push_back_prim()
   l.push_back(10);
   l.push_back(10.0);
   l.push_back("hello there");
-  l.push_back("ho are you ?"s);
+  l.push_back(std::string("how are you ?"));
   l.push_back(true);
 
   return l[0].type() == shaun::Type::number
