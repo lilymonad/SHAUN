@@ -79,6 +79,9 @@ public:
      */
     void push_back(const shaun& elem);
 
+    template<class C>
+    void push_back(C elem);
+
     /**
      * c++11 foreach loop integration
      */

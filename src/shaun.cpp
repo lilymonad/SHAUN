@@ -413,6 +413,42 @@ void list::push_back(const shaun& ptr)
     }
 }
 
+#define LIST_PUSH_NUM(x) template<>\
+  void list::push_back<x>(x v)\
+  {\
+    elements_.push_back(std::shared_ptr<shaun>(new number(v)));\
+  }
+#define LIST_PUSH_BOOL(x) template<>\
+  void list::push_back<x>(x v)\
+  {\
+    elements_.push_back(std::shared_ptr<shaun>(new boolean(v)));\
+  }
+#define LIST_PUSH_STRING(x) template<>\
+  void list::push_back<x>(x v)\
+  {\
+    elements_.push_back(std::shared_ptr<shaun>(new string(v)));\
+  }
+
+LIST_PUSH_BOOL(bool)
+
+LIST_PUSH_NUM(char)
+LIST_PUSH_NUM(unsigned char)
+LIST_PUSH_NUM(short)
+LIST_PUSH_NUM(unsigned short)
+LIST_PUSH_NUM(int)
+LIST_PUSH_NUM(unsigned int)
+LIST_PUSH_NUM(long)
+LIST_PUSH_NUM(unsigned long)
+LIST_PUSH_NUM(wchar_t)
+LIST_PUSH_NUM(float)
+LIST_PUSH_NUM(double)
+LIST_PUSH_NUM(long double)
+
+LIST_PUSH_STRING(const std::string&)
+LIST_PUSH_STRING(std::string)
+LIST_PUSH_STRING(const char *)
+
+
 list::iterator list::begin()
 {
     return elements_.begin();
