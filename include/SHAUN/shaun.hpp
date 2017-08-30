@@ -135,19 +135,19 @@ public:
     void visited(visitor& v);
 
  
-    virtual operator bool();
-    virtual operator char();
-    virtual operator unsigned char();
-    virtual operator short();
-    virtual operator unsigned short();
-    virtual operator int();
-    virtual operator unsigned int();
-    virtual operator long();
-    virtual operator unsigned long();
-    virtual operator wchar_t();
-    virtual operator float();
-    virtual operator double();
-    virtual operator long double();
+    virtual operator bool() const;
+    virtual operator char() const;
+    virtual operator unsigned char() const;
+    virtual operator short() const;
+    virtual operator unsigned short() const;
+    virtual operator int() const;
+    virtual operator unsigned int() const;
+    virtual operator long() const;
+    virtual operator unsigned long() const;
+    virtual operator wchar_t() const;
+    virtual operator float() const;
+    virtual operator double() const;
+    virtual operator long double() const;
 
 private:
     bool value;
@@ -177,19 +177,19 @@ public:
 
     const std::string& unit() const;
  
-    virtual operator bool();
-    virtual operator char();
-    virtual operator unsigned char();
-    virtual operator short();
-    virtual operator unsigned short();
-    virtual operator int();
-    virtual operator unsigned int();
-    virtual operator long();
-    virtual operator unsigned long();
-    virtual operator wchar_t();
-    virtual operator float();
-    virtual operator double();
-    virtual operator long double();
+    virtual operator bool() const;
+    virtual operator char() const;
+    virtual operator unsigned char() const;
+    virtual operator short() const;
+    virtual operator unsigned short() const;
+    virtual operator int() const;
+    virtual operator unsigned int() const;
+    virtual operator long() const;
+    virtual operator unsigned long() const;
+    virtual operator wchar_t() const;
+    virtual operator float() const;
+    virtual operator double() const;
+    virtual operator long double() const;
 
 private:
     double value;
@@ -214,6 +214,16 @@ public:
     operator const char *() const
     {
       return value.c_str();
+    }
+
+    bool operator==(const char * str)
+    {
+      return value == str;
+    }
+
+    bool operator==(const std::string& str)
+    {
+      return value == str;
     }
 
     size_t size() const

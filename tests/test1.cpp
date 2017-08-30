@@ -11,7 +11,7 @@
 
 using namespace std;
 
-bool test1()
+bool parsing_ok()
 {
     try
     {
@@ -44,6 +44,32 @@ bool test1()
     }
 }
 
+bool object_primitive_attributes()
+{
+    shaun::object o;
+    o.add("x", 10);
+    o.add("y", 10.0);
+    o.add("b", true);
+    o.add("s", "hello"s);
+
+    ofstream file("../resources/test2_out.shaun");
+    shaun::printer pr(&file);
+    pr.visit(o);
+    file.close();
+
+    try
+    {
+        shaun::parser p;
+        shaun::object o = p.parse_file("../resources/test2_out.shaun");
+        return o.get<shaun::string>("s") == "hello";
+    }
+    catch (shaun::parse_error e)
+    {
+        std::cout << e << std::endl;
+        return false;
+    }
+}
+
 #define MAKE_TEST(name) (UnitTest(#name, name))
 
 class UnitTest
@@ -60,7 +86,8 @@ private:
 int main(void)
 {
     const vector<UnitTest> unitTests = {
-        MAKE_TEST(test1)
+        MAKE_TEST(parsing_ok),
+        MAKE_TEST(object_primitive_attributes)
     };
 
     int failedNum = 0;

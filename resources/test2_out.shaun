@@ -1,0 +1,5 @@
+{ b: true
+  s: "hello"
+  x: 10
+  y: 10
+}

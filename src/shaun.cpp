@@ -97,7 +97,6 @@ const char * NULL_STRING = "";
 
 
 
-
 namespace shaun
 {
 
