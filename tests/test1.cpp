@@ -70,6 +70,13 @@ bool object_primitive_attributes()
     }
 }
 
+bool get_with_default()
+{
+  shaun::object o;
+  o.add("x", 10);
+  return o.get_with_default("default"s, "monattribut") == "default" && (double)o.get_with_default(0, "x") == 10;
+}
+
 #define MAKE_TEST(name) (UnitTest(#name, name))
 
 class UnitTest
@@ -87,7 +94,8 @@ int main(void)
 {
     const vector<UnitTest> unitTests = {
         MAKE_TEST(parsing_ok),
-        MAKE_TEST(object_primitive_attributes)
+        MAKE_TEST(object_primitive_attributes),
+        MAKE_TEST(get_with_default)
     };
 
     int failedNum = 0;

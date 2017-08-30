@@ -25,7 +25,45 @@ const char * NULL_STRING = "";
             return *(static_cast<const x*>(get_variable(name)));     \
                                                                      \
         throw type_error(Type::x, get_variable(name)->type(), name); \
+    }\
+    template<>\
+    x object::get_with_default<x>(const x& def, const std::string& name) const\
+    {\
+      try\
+      {\
+        return get<x>(name);\
+      }\
+      catch (...)\
+      {\
+        return def;\
+      }\
     }
+
+#define OBJ_GET_DEF_BOOL(x) template<>\
+    x object::get_with_default<x>(const x& def, const std::string& name) const\
+    {\
+      try\
+      {\
+        return get<boolean>(name);\
+      }\
+      catch (...)\
+      {\
+        return def;\
+      }\
+    }
+#define OBJ_GET_DEF_NUM(x) template<>\
+    x object::get_with_default<x>(const x& def, const std::string& name) const\
+    {\
+      try\
+      {\
+        return get<number>(name);\
+      }\
+      catch (...)\
+      {\
+        return def;\
+      }\
+    }
+
 
 #define OBJ_ADD(x) template<>                                               \
     void object::add<x> (const std::string& name, const x& v)               \
@@ -199,6 +237,33 @@ OBJ_GET(object)
 OBJ_GET(boolean)
 OBJ_GET(string)
 OBJ_GET(list)
+OBJ_GET_DEF_BOOL(bool)
+
+OBJ_GET_DEF_NUM(char)
+OBJ_GET_DEF_NUM(unsigned char)
+OBJ_GET_DEF_NUM(short int)
+OBJ_GET_DEF_NUM(unsigned short int)
+OBJ_GET_DEF_NUM(int)
+OBJ_GET_DEF_NUM(unsigned int)
+OBJ_GET_DEF_NUM(long)
+OBJ_GET_DEF_NUM(unsigned long)
+OBJ_GET_DEF_NUM(wchar_t)
+OBJ_GET_DEF_NUM(float)
+OBJ_GET_DEF_NUM(double)
+OBJ_GET_DEF_NUM(long double)
+
+template<>
+std::string object::get_with_default<std::string>(const std::string& def, const std::string& name) const
+{
+  try
+  {
+    return get<string>(name);
+  }
+  catch (...)
+  {
+    return def;
+  }
+}
 
 OBJ_ADD(number)
 OBJ_ADD(object)

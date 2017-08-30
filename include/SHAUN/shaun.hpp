@@ -276,6 +276,9 @@ public:
     C& get(const std::string& name);
 
     template<class C>
+    C get_with_default(const C&, const std::string&) const;
+
+    template<class C>
     const C& get(const std::string& name) const;
 
     Type type_of(const std::string& name) const;
