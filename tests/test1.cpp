@@ -74,6 +74,22 @@ bool get_with_default()
     (double)o.get_with_default(0, "x") == 10;
 }
 
+bool list_push_back_prim()
+{
+  shaun::list l;
+  l.push_back(10);
+  l.push_back(10.0);
+  l.push_back("hello there");
+  l.push_back("ho are you ?"s);
+  l.push_back(true);
+
+  return l[0].type() == shaun::Type::number
+      && l[1].type() == shaun::Type::number
+      && l[2].type() == shaun::Type::string
+      && l[3].type() == shaun::Type::string
+      && l[4].type() == shaun::Type::boolean;
+}
+
 #define MAKE_TEST(name) (UnitTest(#name, name))
 
 class UnitTest
@@ -92,7 +108,8 @@ int main(void)
     const vector<UnitTest> unitTests = {
         MAKE_TEST(parsing_ok),
         MAKE_TEST(object_primitive_attributes),
-        MAKE_TEST(get_with_default)
+        MAKE_TEST(get_with_default),
+        MAKE_TEST(list_push_back_prim)
     };
 
     int failedNum = 0;
