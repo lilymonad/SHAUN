@@ -37,8 +37,9 @@ void printer::visit_number(number& n)
 
 void printer::visit_string(string& s)
 {
+    std::string ss = s;
     std::string to_print;
-    for (const auto &c : (std::string)s)
+    for (const auto &c : ss)
     {
       switch (c)
       {

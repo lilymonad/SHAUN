@@ -7,26 +7,22 @@
 namespace shaun
 {
 
-  parser::parser() { parsed = 0; }
-  parser::parser(const parser::String& str)
+  parser::parser() { }
+  parser::parser(const std::string& str)
   {
-    parsed = 0; 
     iss_.str(str);
   }
 
-  parser::parser(const parser::Stream& iss)
+  parser::parser(const std::istringstream& iss)
     {
-        parsed = 0; 
         iss_.str(iss.str());
     }
 
   parser::~parser()
     {
-        if (parsed)
-            delete parsed;
     }
 
-    object& parser::parse()
+    object parser::parse()
     {
         // Changing the locale for "C" number parsing system
         // the old locale is saved to be restored after the
@@ -36,8 +32,6 @@ namespace shaun
 
         // init the parsing state
         line_ = column_ = 0;
-        if (parsed) delete parsed;
-        parsed = 0;
         
         // loop through the whole stream
         while (iss_.good())
@@ -47,20 +41,23 @@ namespace shaun
             char_type c = iss_.peek();
             if (c == '{')
             {
-                parsed = parse_object();
-                break;
+        setlocale(LC_NUMERIC, old_locale);
+                return parse_object();
             }
             else if (isalpha(c))
             {
-                parsed = new object();
+                object parsed;
 
                 while (iss_.good())
                 {
-                    parsed->add<shaun>(parse_variable());
+                    auto sh = parse_variable();
+                    parsed.add<shaun>(sh.first, *sh.second);
+                    delete sh.second;
                     skipws();
                 }
 
-                break;
+        setlocale(LC_NUMERIC, old_locale);
+                return parsed;
             }
             else
             {
@@ -70,29 +67,27 @@ namespace shaun
             forward();
         }
 
-        PARSE_ASSERT(parsed, what ?);
+        PARSE_ERROR("couldn't parse this string");
         
-        setlocale(LC_NUMERIC, old_locale);
 
-        return *parsed;
     }
 
-    object& parser::parse(const parser::String& str)
+    object parser::parse(const std::string& str)
     {
         iss_.str(str);
         return parse();
     }
 
-    object& parser::parse(const parser::Stream& iss)
+    object parser::parse(const std::istringstream& iss)
     {
         iss_.str(iss.str());
         return parse();
     }
 
-    object& parser::parse_file(const parser::String& str)
+    object parser::parse_file(const std::string& str)
     {
         std::ifstream file(str);
-        parser::String to_parse;
+        std::string to_parse;
 
         file.seekg(0, std::ios::end);
         to_parse.reserve(file.tellg());
@@ -158,17 +153,19 @@ namespace shaun
         iss_.ignore();
     }
 
-    object * parser::parse_object()
+    object parser::parse_object()
     {
         PARSE_ASSERT(iss_.peek() == '{', expected object value);
-        object * obj = new object();
+        object obj;
 
         forward();
         skipws();
 
         while (iss_.good() && iss_.peek() != '}')
         {
-            obj->add<shaun>(parse_variable());
+          auto sh = parse_variable();
+            obj.add<shaun>(sh.first, *sh.second);
+            delete sh.second;
             skipws();
         }
 
@@ -176,7 +173,7 @@ namespace shaun
         return obj;
     }
 
-    std::pair<parser::String, shaun*> parser::parse_variable()
+    std::pair<std::string, shaun*> parser::parse_variable()
     {
         PARSE_ASSERT(isalpha(iss_.peek()), invalid variable name);
         
@@ -187,15 +184,13 @@ namespace shaun
         forward();
         skipws();
 
-        shaun * value = parse_value();
-
-        return std::make_pair(name, value);
+        return std::make_pair(name, parse_value());
     }
 
-    parser::String parser::parse_name()
+    std::string parser::parse_name()
     {
         PARSE_ASSERT(isalpha(iss_.peek()) || iss_.peek() == '_', names must start with a letter or '_');
-        parser::String ret;
+        std::string ret;
         char_type c;
         while (isalnum(c = iss_.peek()) || c == '_')
         {
@@ -208,46 +203,51 @@ namespace shaun
         return ret;
     }
 
-    shaun * parser::parse_value()
+    shaun* parser::parse_value()
     {
+        shaun * ret = 0;
+
         char_type c = iss_.peek();
         if (c == '"')
         {
-            return parse_string();
+            ret = new string(parse_string());
         }
         
         if (isdigit(c) || c == '-' || c == '.')
         {
-            return parse_number();
+            ret = new number(parse_number());
         }
         
         if (c == '{')
         {
-            return parse_object();
+            ret = new object(parse_object());
         }
         
         if (c == 't' || c == 'f')
         {
-            return parse_boolean();
+            ret = new boolean(parse_boolean());
         }
         
         if (c == '[')
         {
-            return parse_list();
+            ret = new list(parse_list());
         }
         
-        parser::String err = "illegal character:  ";
+        if (ret)
+          return ret;
+
+        std::string err = "illegal character:  ";
         err[err.size() - 1] = c;
         throw parse_error(line_, column_, err);
     }
 
-    string * parser::parse_string()
+    string parser::parse_string()
     {
         PARSE_ASSERT(iss_.peek() == '"', expected string value);
         size_t start_col = column_;
         forward();
 
-        parser::String str;
+        std::string str;
         char_type c = '\0';
         bool get_line = false;
         bool nows     = false;
@@ -311,13 +311,13 @@ namespace shaun
 
         forward();        
 
-        return new string(str);
+        return string(str);
     }
 
-    number * parser::parse_number()
+    number parser::parse_number()
     {
-        parser::String num;
-        parser::String unit;
+        std::string num;
+        std::string unit;
         char_type c;
         while (iss_.good() && ((c = iss_.peek()) == 'E'
             || c == 'e'
@@ -349,11 +349,11 @@ namespace shaun
                 if (iss_.peek() == ':')
                 {
                     iss_.seekg(before_unit, iss_.beg);
-                    return new number(dbl, "");
+                    return number(dbl, "");
                 }
                 else
                 {
-                    return new number(dbl, unit);
+                    return number(dbl, unit);
                 }
         }
         catch (const std::invalid_argument&)
@@ -366,9 +366,9 @@ namespace shaun
         }
     }
 
-    boolean * parser::parse_boolean()
+    boolean parser::parse_boolean()
     {
-        parser::String ret;
+        std::string ret;
         char_type c;
         while (isalpha(c = iss_.peek()))
         {
@@ -377,19 +377,21 @@ namespace shaun
         }
 
         PARSE_ASSERT(ret == "true" || ret == "false", expected boolean value);
-        return new boolean(ret == "true");
+        return boolean(ret == "true");
     }
 
-    list * parser::parse_list()
+    list parser::parse_list()
     {
         PARSE_ASSERT(iss_.peek() == '[', expected list value);
-        list * ret = new list();
+        list ret;
 
         forward();
         skipws();
         while (iss_.good() && iss_.peek() != ']')
         {
-            ret->push_back(parse_value());
+          shaun * sh = parse_value();
+            ret.push_back(*sh);
+            delete sh;
             skipws();
         }
 

@@ -20,72 +20,40 @@ namespace shaun
 class parser
 {
 public:
-    typedef char char_type;
-    typedef std::char_traits<char_type> char_traits;
-    typedef std::basic_string<char_type, char_traits> String;
-    typedef std::basic_istringstream<char_type, char_traits> Stream;
+    using char_type = char;
 
     parser();
-    parser(const String& str);
-    parser(const Stream& iss);
+    parser(const std::string& str);
+    parser(const std::istringstream& iss);
 
     ~parser();
 
-    object& parse();
-    
-
-    object& parse(const String& str);
-    
-
-    object& parse(const Stream& iss);
-    
-
-    object& parse_file(const String& str);
-    
+    object parse();
+    object parse(const std::string& str);
+    object parse(const std::istringstream& iss);
+    object parse_file(const std::string& str);
 
 private:
 
     void skipws();
-    
-
     void skip_comment();
-    
-
     void forward();
     
 
-    object * parse_object();
-    
-
-    std::pair<String, shaun*> parse_variable();
-    
-
-    String parse_name();
-    
-
-    shaun * parse_value();
-    
-
-    string * parse_string();
-    
-
-    number * parse_number();
-    
-
-    boolean * parse_boolean();
-    
-
-    list * parse_list();
-    
+    object parse_object();
+    std::pair<std::string, shaun*> parse_variable();
+    std::string parse_name();
+    shaun* parse_value();
+    string parse_string();
+    number parse_number();
+    boolean parse_boolean();
+    list parse_list();
 
     template<typename T> int signum(T val);
     
-
-    Stream iss_;
+    std::istringstream iss_;
     size_t line_;
     size_t column_;
-
-    object * parsed;
 };
 
 } // namespace

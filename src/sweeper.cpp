@@ -139,7 +139,7 @@ size_t sweeper::size() const
   {
     case Type::null: return 0;
     case Type::number: return (size_t)((double)(*static_cast<number*>(root_)));
-    case Type::string: return ((std::string)(*static_cast<string*>(root_))).size();
+    case Type::string: return (*static_cast<string*>(root_)).size();
     case Type::object: return static_cast<object*>(root_)->size();
     case Type::list: return static_cast<list*>(root_)->size();
     case Type::boolean: return (size_t)((bool)(*static_cast<boolean*>(root_)));

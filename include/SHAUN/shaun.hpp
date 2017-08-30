@@ -32,6 +32,23 @@ public:
      * node part of the visitor pattern
      */
     virtual void visited(visitor& v) = 0;
+
+    virtual operator bool() const;
+    virtual operator char() const;
+    virtual operator unsigned char() const;
+    virtual operator short() const;
+    virtual operator unsigned short() const;
+    virtual operator int() const;
+    virtual operator unsigned int() const;
+    virtual operator long() const;
+    virtual operator unsigned long() const;
+    virtual operator wchar_t() const;
+    virtual operator float() const;
+    virtual operator double() const;
+    virtual operator long double() const;
+    virtual operator std::string() const;
+    virtual operator const char *() const;
+
 protected:
     shaun() = delete;
     shaun(Type t);
@@ -60,7 +77,7 @@ public:
     /**
      * same as std::vector
      */
-    void push_back(shaun * elem);
+    void push_back(const shaun& elem);
 
     /**
      * c++11 foreach loop integration
@@ -100,11 +117,38 @@ class boolean : public shaun
 public:
     boolean();
     boolean(const boolean& b);
-    boolean(bool yes);
+
+    boolean(bool);
+    boolean(char);
+    boolean(unsigned char);
+    boolean(short int);
+    boolean(unsigned short int);
+    boolean(int);
+    boolean(unsigned int);
+    boolean(long);
+    boolean(unsigned long);
+    boolean(wchar_t);
+    boolean(float);
+    boolean(double);
+    boolean(long double);
 
     void visited(visitor& v);
 
-    explicit operator bool() const { return value; }
+ 
+    virtual operator bool();
+    virtual operator char();
+    virtual operator unsigned char();
+    virtual operator short();
+    virtual operator unsigned short();
+    virtual operator int();
+    virtual operator unsigned int();
+    virtual operator long();
+    virtual operator unsigned long();
+    virtual operator wchar_t();
+    virtual operator float();
+    virtual operator double();
+    virtual operator long double();
+
 private:
     bool value;
 };
@@ -114,13 +158,39 @@ class number : public shaun
 public:
     number();
     number(const number& num);
-    number(double val, const std::string& u);
+
+    number(bool, const std::string& u = "");
+    number(char, const std::string& u = "");
+    number(unsigned char, const std::string& u = "");
+    number(short int, const std::string& u = "");
+    number(unsigned short int, const std::string& u = "");
+    number(int, const std::string& u = "");
+    number(unsigned int, const std::string& u = "");
+    number(long, const std::string& u = "");
+    number(unsigned long, const std::string& u = "");
+    number(wchar_t, const std::string& u = "");
+    number(float, const std::string& u = "");
+    number(double, const std::string& u = "");
+    number(long double, const std::string& u = "");
 
     void visited(visitor& v);
 
     const std::string& unit() const;
-    operator double() const { return value; }
-    
+ 
+    virtual operator bool();
+    virtual operator char();
+    virtual operator unsigned char();
+    virtual operator short();
+    virtual operator unsigned short();
+    virtual operator int();
+    virtual operator unsigned int();
+    virtual operator long();
+    virtual operator unsigned long();
+    virtual operator wchar_t();
+    virtual operator float();
+    virtual operator double();
+    virtual operator long double();
+
 private:
     double value;
     std::string un;
@@ -132,12 +202,23 @@ public:
     string();
     string(const string& str);
     string(const std::string& str);
+    string(const char * str);
 
     void visited(visitor& v);
 
     operator std::string() const
     {
-        return value;
+      return value;
+    }
+
+    operator const char *() const
+    {
+      return value.c_str();
+    }
+
+    size_t size() const
+    {
+      return value.size();
     }
 private:
     std::string value;
@@ -171,10 +252,10 @@ public:
     object& operator=(const object& obj);
 
     template<class C>
-    void add(std::pair<std::string, C *> pair);
+    void add(std::pair<std::string, const C&> pair);
 
     template<class C>
-    void add(const std::string& name, C * ptr);
+    void add(const std::string& name, const C& ptr);
 
     iterator begin();
     const_iterator begin() const;
