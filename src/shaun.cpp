@@ -286,7 +286,7 @@ OBJ_ADD_PRIM_TO_NUMBER(double)
 OBJ_ADD_PRIM_TO_NUMBER(long double)
 
 OBJ_ADD_PRIM_TO_STRING(std::string)
-OBJ_ADD_PRIM_TO_STRING(const char *)
+//OBJ_ADD_PRIM_TO_STRING(const char *)
   
 object::iterator object::begin()
 {

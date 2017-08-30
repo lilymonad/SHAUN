@@ -1,25 +1,66 @@
 #include <SHAUN/parser.hpp>
 
-#define PARSE_ERROR(str) throw parse_error(line_, column_, #str)
-#define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
-#define TAKE_TO(c) while (iss_.good() && iss_.peek() != c) forward()
-
 namespace shaun
 {
 
-  parser::parser() { }
+class parser
+{
+public:
+    using char_type = char;
+
+    parser() = delete;
+    parser(const std::string& str);
+    parser(std::istream& iss);
+
+    ~parser();
+
+    object parse();
+
+private:
+
+    void skipws();
+    void skip_comment();
+    void forward();
+    
+
+    object parse_object();
+    std::pair<std::string, shaun*> parse_variable();
+    std::string parse_name();
+    shaun* parse_value();
+    string parse_string();
+    number parse_number();
+    boolean parse_boolean();
+    list parse_list();
+
+    template<typename T> int signum(T val);
+    
+    std::istream * iss_;
+    size_t line_;
+    size_t column_;
+    bool new_iss;
+};
+
+#define PARSE_ERROR(str) throw parse_error(line_, column_, #str)
+#define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
+#define TAKE_TO(c) while (iss_->good() && iss_->peek() != c) forward()
+
+
   parser::parser(const std::string& str)
   {
-    iss_.str(str);
+    new_iss = true;
+    iss_ = new std::istringstream(str);
   }
 
-  parser::parser(const std::istringstream& iss)
+  parser::parser(std::istream& iss)
     {
-        iss_.str(iss.str());
+      new_iss = false;
+        iss_ = &iss;
     }
 
   parser::~parser()
     {
+      if (new_iss)
+        delete iss_;
     }
 
     object parser::parse()
@@ -34,11 +75,11 @@ namespace shaun
         line_ = column_ = 0;
         
         // loop through the whole stream
-        while (iss_.good())
+        while (iss_->good())
         {
             skipws();
 
-            char_type c = iss_.peek();
+            char_type c = iss_->peek();
             if (c == '{')
             {
         setlocale(LC_NUMERIC, old_locale);
@@ -48,7 +89,7 @@ namespace shaun
             {
                 object parsed;
 
-                while (iss_.good())
+                while (iss_->good())
                 {
                     auto sh = parse_variable();
                     parsed.add<shaun>(sh.first, *sh.second);
@@ -72,42 +113,14 @@ namespace shaun
 
     }
 
-    object parser::parse(const std::string& str)
-    {
-        iss_.str(str);
-        return parse();
-    }
-
-    object parser::parse(const std::istringstream& iss)
-    {
-        iss_.str(iss.str());
-        return parse();
-    }
-
-    object parser::parse_file(const std::string& str)
-    {
-        std::ifstream file(str);
-        std::string to_parse;
-
-        file.seekg(0, std::ios::end);
-        to_parse.reserve(file.tellg());
-        file.seekg(0, std::ios::beg);
-
-        to_parse.assign(std::istreambuf_iterator<char_type>(file)
-            , std::istreambuf_iterator<char_type>());
-
-        return parse(to_parse);
-    }
-
-
     void parser::skipws()
     {
-        while (iss_.good() && (isspace(iss_.peek())
-                            || iss_.peek() == ','
-                            || iss_.peek() == '('
-                            || iss_.peek() == '/'))
+        while (iss_->good() && (isspace(iss_->peek())
+                            || iss_->peek() == ','
+                            || iss_->peek() == '('
+                            || iss_->peek() == '/'))
         {
-            switch (iss_.peek())
+            switch (iss_->peek())
             {
                 case '(':
                 case '/': skip_comment();
@@ -120,17 +133,17 @@ namespace shaun
 
     void parser::skip_comment()
     {
-        switch (iss_.peek())
+        switch (iss_->peek())
         {
             case '(':
                 TAKE_TO(')');
                 break;
             case '/':
                 forward();
-                if (iss_.peek() == '/') { TAKE_TO('\n'); return; }
-                if (iss_.peek() == '*')
+                if (iss_->peek() == '/') { TAKE_TO('\n'); return; }
+                if (iss_->peek() == '*')
                 {
-                    while (iss_.good() && iss_.peek() != '/')
+                    while (iss_->good() && iss_->peek() != '/')
                     {
                         TAKE_TO('*');
                         forward();
@@ -144,24 +157,24 @@ namespace shaun
     void parser::forward()
     {
         ++column_;
-        if (iss_.peek() == '\n')
+        if (iss_->peek() == '\n')
         {
             ++line_;
             column_ = 0;
         }
 
-        iss_.ignore();
+        iss_->ignore();
     }
 
     object parser::parse_object()
     {
-        PARSE_ASSERT(iss_.peek() == '{', expected object value);
+        PARSE_ASSERT(iss_->peek() == '{', expected object value);
         object obj;
 
         forward();
         skipws();
 
-        while (iss_.good() && iss_.peek() != '}')
+        while (iss_->good() && iss_->peek() != '}')
         {
           auto sh = parse_variable();
             obj.add<shaun>(sh.first, *sh.second);
@@ -175,12 +188,12 @@ namespace shaun
 
     std::pair<std::string, shaun*> parser::parse_variable()
     {
-        PARSE_ASSERT(isalpha(iss_.peek()), invalid variable name);
+        PARSE_ASSERT(isalpha(iss_->peek()), invalid variable name);
         
         std::string name = parse_name();
 
         skipws();
-        PARSE_ASSERT(iss_.peek() == ':', expected variable separator ':');
+        PARSE_ASSERT(iss_->peek() == ':', expected variable separator ':');
         forward();
         skipws();
 
@@ -189,10 +202,10 @@ namespace shaun
 
     std::string parser::parse_name()
     {
-        PARSE_ASSERT(isalpha(iss_.peek()) || iss_.peek() == '_', names must start with a letter or '_');
+        PARSE_ASSERT(isalpha(iss_->peek()) || iss_->peek() == '_', names must start with a letter or '_');
         std::string ret;
         char_type c;
-        while (isalnum(c = iss_.peek()) || c == '_')
+        while (isalnum(c = iss_->peek()) || c == '_')
         {
             ret.push_back(c);
             forward();
@@ -207,7 +220,7 @@ namespace shaun
     {
         shaun * ret = 0;
 
-        char_type c = iss_.peek();
+        char_type c = iss_->peek();
         if (c == '"')
         {
             ret = new string(parse_string());
@@ -243,7 +256,7 @@ namespace shaun
 
     string parser::parse_string()
     {
-        PARSE_ASSERT(iss_.peek() == '"', expected string value);
+        PARSE_ASSERT(iss_->peek() == '"', expected string value);
         size_t start_col = column_;
         forward();
 
@@ -253,7 +266,7 @@ namespace shaun
         bool nows     = false;
 
         // get a normal string OR the first line of a multiline string
-        while (iss_.good() && (c = iss_.peek()) != '\n' && c != '"')
+        while (iss_->good() && (c = iss_->peek()) != '\n' && c != '"')
         {
             if (!isspace(c)) nows = true;
 
@@ -261,7 +274,7 @@ namespace shaun
             if (c == '\\')
             {
               forward();
-              str.push_back(iss_.peek());
+              str.push_back(iss_->peek());
             }
             else
             {
@@ -279,7 +292,7 @@ namespace shaun
         if (c == '\n') forward();
 
         // this loop for multiline strings
-        while (iss_.good() && (c = iss_.peek()) != '"')
+        while (iss_->good() && (c = iss_->peek()) != '"')
         {
             // each new line resets the "spaces counter"
             if (c == '\n')
@@ -293,7 +306,7 @@ namespace shaun
                 if (c == '\\')
                 {
                   forward();
-                  str.push_back(iss_.peek());
+                  str.push_back(iss_->peek());
                 }
                 else
                   str.push_back(c);
@@ -307,7 +320,7 @@ namespace shaun
         // discard last new line, if existing
         if (str[str.size() - 1] == '\n') str.resize(str.size() - 1);
 
-        PARSE_ASSERT(iss_.good(), unexpected EOF while parsing string);
+        PARSE_ASSERT(iss_->good(), unexpected EOF while parsing string);
 
         forward();        
 
@@ -319,7 +332,7 @@ namespace shaun
         std::string num;
         std::string unit;
         char_type c;
-        while (iss_.good() && ((c = iss_.peek()) == 'E'
+        while (iss_->good() && ((c = iss_->peek()) == 'E'
             || c == 'e'
             || c == '-'
             || isdigit(c)
@@ -330,7 +343,7 @@ namespace shaun
             forward();
         }
 
-        size_t before_unit = iss_.tellg();
+        size_t before_unit = iss_->tellg();
         skipws();
         try
         {
@@ -339,16 +352,16 @@ namespace shaun
         catch (...)
         {
             unit = "none";
-            iss_.seekg(before_unit, iss_.beg);
+            iss_->seekg(before_unit, iss_->beg);
         }
         skipws();
 
         try
         {
             double dbl = std::stod(num);
-                if (iss_.peek() == ':')
+                if (iss_->peek() == ':')
                 {
-                    iss_.seekg(before_unit, iss_.beg);
+                    iss_->seekg(before_unit, iss_->beg);
                     return number(dbl, "");
                 }
                 else
@@ -370,7 +383,7 @@ namespace shaun
     {
         std::string ret;
         char_type c;
-        while (isalpha(c = iss_.peek()))
+        while (isalpha(c = iss_->peek()))
         {
             ret.push_back(c);
             forward();
@@ -382,12 +395,12 @@ namespace shaun
 
     list parser::parse_list()
     {
-        PARSE_ASSERT(iss_.peek() == '[', expected list value);
+        PARSE_ASSERT(iss_->peek() == '[', expected list value);
         list ret;
 
         forward();
         skipws();
-        while (iss_.good() && iss_.peek() != ']')
+        while (iss_->good() && iss_->peek() != ']')
         {
           shaun * sh = parse_value();
             ret.push_back(*sh);
@@ -404,5 +417,22 @@ namespace shaun
         return (T(0) < val) - (val < T(0));
     }
 
+    object parse(const std::string& str)
+    {
+        parser p(str);
+        return p.parse();
+    }
+
+    object parse(std::istream& str)
+    {
+        parser p(str);
+        return p.parse();
+    }
+
+    object parse_file(const std::string& str)
+    {
+      std::ifstream file(str);
+        return parser(file).parse();
+    }
 } // namespace
 

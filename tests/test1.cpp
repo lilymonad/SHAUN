@@ -16,11 +16,8 @@ bool parsing_ok()
     try
     {
         // Parse file
-        shaun::parser p;
         ifstream file("../resources/test.shaun");
-        stringstream buffer; 
-        buffer << file.rdbuf();
-        shaun::object obj1 = p.parse(buffer.str());
+        shaun::object obj1 = shaun::parse_file("../resources/test.shaun");
 
         // Generate shaun file
         stringstream output1;
@@ -28,7 +25,7 @@ bool parsing_ok()
         pr1.visit(obj1);
 
         // Parse generated file
-        shaun::object obj2 = p.parse(output1.str());
+        shaun::object obj2 = shaun::parse(output1.str());
         // Regenerate shaun file
         stringstream output2;
         shaun::printer pr2(&output2);
@@ -59,8 +56,7 @@ bool object_primitive_attributes()
 
     try
     {
-        shaun::parser p;
-        shaun::object o = p.parse_file("../resources/test2_out.shaun");
+        shaun::object o = shaun::parse_file("../resources/test2_out.shaun");
         return o.get<shaun::string>("s") == "hello";
     }
     catch (shaun::parse_error e)
