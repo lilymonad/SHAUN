@@ -1,6 +1,6 @@
 CXX=g++
 MKDIR_P=mkdir -p
-CXXFLAGS=-Wall -std=c++11 -Iinclude/ -g
+CXXFLAGS=-Wall -std=c++11 -Iinclude/
 LDFLAGS=-Llib/ -lSHAUN
 
 .PHONY: all clean
