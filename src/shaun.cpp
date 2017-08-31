@@ -159,7 +159,7 @@ shaun::shaun(Type t) : type_(t)
 
 bool shaun::is_null() const
 {
-    return type_ != Type::null;
+    return type_ == Type::null;
 }
 
 int shaun::index_of(shaun *child) const

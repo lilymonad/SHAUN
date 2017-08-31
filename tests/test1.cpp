@@ -8,6 +8,7 @@
 
 #include <SHAUN/parser.hpp>
 #include <SHAUN/printer.hpp>
+#include <SHAUN/sweeper.hpp>
 
 using namespace std;
 
@@ -68,26 +69,56 @@ bool object_primitive_attributes()
 
 bool get_with_default()
 {
-  shaun::object o;
-  o.add("x", 10);
-  return o.get_with_default<std::string>("default", "monattribut") == "default" && 
-    (double)o.get_with_default(0, "x") == 10;
+    shaun::object o;
+    o.add("x", 10);
+
+    return o.get_with_default<std::string>("default", "monattribut") == "default" 
+        && (double)o.get_with_default(0, "x") == 10;
 }
 
 bool list_push_back_prim()
 {
-  shaun::list l;
-  l.push_back(10);
-  l.push_back(10.0);
-  l.push_back("hello there");
-  l.push_back(std::string("how are you ?"));
-  l.push_back(true);
+    shaun::list l;
+    l.push_back(10);
+    l.push_back(10.0);
+    l.push_back("hello there");
+    l.push_back(std::string("how are you ?"));
+    l.push_back(true);
 
-  return l[0].type() == shaun::Type::number
-      && l[1].type() == shaun::Type::number
-      && l[2].type() == shaun::Type::string
-      && l[3].type() == shaun::Type::string
-      && l[4].type() == shaun::Type::boolean;
+    return l[0].type() == shaun::Type::number
+        && l[1].type() == shaun::Type::number
+        && l[2].type() == shaun::Type::string
+        && l[3].type() == shaun::Type::string
+        && l[4].type() == shaun::Type::boolean;
+}
+
+bool sweeper_ok()
+{
+    shaun::list l;
+    l.push_back(10);
+    l.push_back(10.0);
+    l.push_back("hello there");
+    l.push_back(std::string("how are you ?"));
+    l.push_back(true);
+
+    shaun::object obj;
+    obj.add("list", l);
+
+    try
+    {
+        shaun::sweeper sw(obj);
+        bool isValid = !sw.is_null();
+        bool subSweepValid = !sw("list").is_null();
+        bool typeValid = sw("list")[0].type() == shaun::Type::number;
+        bool valueValid = sw("list")[2].value<shaun::string>() == "hello there";
+        return isValid && subSweepValid && typeValid && valueValid;
+    }
+    catch (shaun::parse_error e)
+    {
+        std::cout << e << std::endl;
+        return false;
+    }
+
 }
 
 #define MAKE_TEST(name) (UnitTest(#name, name))
@@ -109,7 +140,8 @@ int main(void)
         MAKE_TEST(parsing_ok),
         MAKE_TEST(object_primitive_attributes),
         MAKE_TEST(get_with_default),
-        MAKE_TEST(list_push_back_prim)
+        MAKE_TEST(list_push_back_prim),
+        MAKE_TEST(sweeper_ok)
     };
 
     int failedNum = 0;
@@ -123,7 +155,7 @@ int main(void)
     cout << "-----------------------" << endl;
     if (failedNum)
     {
-        cout << failedNum << " tests failed" << endl;
+        cout << failedNum << " " << ((failedNum>1)?"tests":"test") << " failed" << endl;
     }
     else
     {

@@ -6,7 +6,7 @@
 namespace shaun
 {
 
-sweeper::sweeper(shaun * root) : name_("root"), root_(root)
+sweeper::sweeper(shaun &root) : name_("root"), root_(&root)
 {
 }
 
@@ -18,7 +18,7 @@ sweeper::~sweeper()
 {
 }
 
-shaun * sweeper::compute_path(const std::string& path)
+shaun * sweeper::compute_path(const std::string& path) const
 {
     std::string::const_iterator first, second;
     std::string name = name_;
@@ -86,7 +86,7 @@ sweeper& sweeper::operator[](size_t i)
 
     try
     {
-        next_.reset(new sweeper(static_cast<list*>(root_)->elements().at(i).get()));
+        next_.reset(new sweeper(*(static_cast<list*>(root_)->elements().at(i).get())));
     }
     catch (...)
     {
@@ -98,7 +98,7 @@ sweeper& sweeper::operator[](size_t i)
 
 sweeper& sweeper::get(const std::string& path)
 {
-    next_.reset(new sweeper(compute_path(path)));
+    next_.reset(new sweeper(*compute_path(path)));
     return *next_;
 }
 
