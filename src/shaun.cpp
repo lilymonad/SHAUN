@@ -92,7 +92,25 @@ const char * NULL_STRING = "";
         x * ptr = new x(pair.second);                                       \
         std::shared_ptr<shaun> to_add(ptr);                                 \
         variables_.insert(std::make_pair(pair.first, to_add));              \
+    }                                                                       \
+                                                                            \
+    template<>                                                              \
+    void object::add<const x&> (const std::string& name, const x& v)        \
+    {                                                                       \
+        x * ptr = new x(v);                                                 \
+        std::shared_ptr<shaun> to_add(ptr);                                 \
+        variables_.insert(std::make_pair(name, to_add));                    \
+    }                                                                       \
+                                                                            \
+    template<>                                                              \
+    void object::add<const x&> (std::pair<std::string, const x&> pair)      \
+    {                                                                       \
+        x * ptr = new x(pair.second);                                       \
+        std::shared_ptr<shaun> to_add(ptr);                                 \
+        variables_.insert(std::make_pair(pair.first, to_add));              \
     }
+
+
 
 #define OBJ_ADD_PRIM_TO_BOOLEAN(x) template<>                               \
   void object::add<x> (const std::string& name, x v)                        \
@@ -265,6 +283,7 @@ OBJ_ADD(object)
 OBJ_ADD(boolean)
 OBJ_ADD(string)
 OBJ_ADD(list)
+
 OBJ_ADD_PRIM_TO_BOOLEAN(bool)
 
 OBJ_ADD_PRIM_TO_NUMBER(char)
@@ -281,7 +300,7 @@ OBJ_ADD_PRIM_TO_NUMBER(double)
 OBJ_ADD_PRIM_TO_NUMBER(long double)
 
 OBJ_ADD_PRIM_TO_STRING(std::string)
-OBJ_ADD_PRIM_TO_STRING(const std::string)
+OBJ_ADD_PRIM_TO_STRING(const std::string&)
 OBJ_ADD_PRIM_TO_STRING(const char *)
   
 object::iterator object::begin()
