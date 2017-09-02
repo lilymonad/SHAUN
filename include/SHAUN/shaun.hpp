@@ -241,10 +241,9 @@ class null : public shaun
 {
 public:
     null();
+    virtual ~null();
 
     void visited(visitor& v);
-
-    static null Null;
 };
 
 class object : public shaun

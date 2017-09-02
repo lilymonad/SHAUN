@@ -71,9 +71,11 @@ bool get_with_default()
 {
     shaun::object o;
     o.add("x", 10);
+    o.add("y", shaun::null());
 
     return o.get_with_default<std::string>("default", "monattribut") == "default" 
-        && (double)o.get_with_default(0, "x") == 10;
+        && (double)o.get_with_default(0, "x") == 10
+        && (double)o.get_with_default(58, "y") == 58;
 }
 
 bool list_push_back_prim()
@@ -121,6 +123,20 @@ bool sweeper_ok()
 
 }
 
+bool null_parsing_ok()
+{
+  try
+  {
+    shaun::object o = shaun::parse("{ attr: null}");
+    return o.get<shaun::shaun>("attr").type() == shaun::Type::null;
+  }
+  catch (shaun::parse_error e)
+  {
+    std::cout << e << std::endl;
+    return false;
+  }
+}
+
 #define MAKE_TEST(name) (UnitTest(#name, name))
 
 class UnitTest
@@ -141,7 +157,8 @@ int main(void)
         MAKE_TEST(object_primitive_attributes),
         MAKE_TEST(get_with_default),
         MAKE_TEST(list_push_back_prim),
-        MAKE_TEST(sweeper_ok)
+        MAKE_TEST(sweeper_ok),
+        MAKE_TEST(null_parsing_ok)
     };
 
     int failedNum = 0;

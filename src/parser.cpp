@@ -31,6 +31,7 @@ private:
     number parse_number();
     boolean parse_boolean();
     list parse_list();
+    void parse_null();
 
     template<typename T> int signum(T val);
     
@@ -178,7 +179,7 @@ private:
         {
           auto sh = parse_variable();
             obj.add<const shaun&>(sh.first, *sh.second);
-            delete sh.second;
+              delete sh.second;
             skipws();
         }
 
@@ -244,6 +245,12 @@ private:
         if (c == '[')
         {
             ret = new list(parse_list());
+        }
+
+        if (c == 'n')
+        {
+            parse_null();
+            ret = new null();
         }
         
         if (ret)
@@ -404,12 +411,25 @@ private:
         {
           shaun * sh = parse_value();
             ret.push_back(*sh);
-            delete sh;
+              delete sh;
             skipws();
         }
 
         forward();
         return ret;
+    }
+
+    void parser::parse_null()
+    {
+      std::string ret;
+      char_type c;
+      while (isalpha(c = iss_->peek()))
+      {
+        ret.push_back(c);
+        forward();
+      }
+
+      PARSE_ASSERT(ret == "null", expected null value);
     }
 
     template<typename T> int parser::signum(T val)

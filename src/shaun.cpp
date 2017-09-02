@@ -247,20 +247,28 @@ object& object::operator=(const object& org)
 
 shaun * object::get_variable(const std::string& name) const
 {
-    try
-    {
-        return variables_.at(name).get();
-    }
-    catch (...)
-    {
-        return &null::Null;
-    }
+    return variables_.at(name).get();
 }
 
 OBJ_GET(number)
 OBJ_GET(object)
 OBJ_GET(boolean)
 OBJ_GET(string)
+
+template<>
+shaun& object::get<shaun>(const std::string& name)
+{
+  shaun * ret = get_variable(name);
+  return *ret;
+}
+
+template<>
+const shaun& object::get<shaun>(const std::string& name) const
+{
+  shaun * ret = get_variable(name);
+  return *ret;
+}
+
 OBJ_GET_DEF_BOOL(bool)
 
 OBJ_GET_DEF_NUM(char)
@@ -283,6 +291,7 @@ OBJ_ADD(object)
 OBJ_ADD(boolean)
 OBJ_ADD(string)
 OBJ_ADD(list)
+OBJ_ADD(null)
 
 OBJ_ADD_PRIM_TO_BOOLEAN(bool)
 
@@ -323,9 +332,6 @@ object::const_iterator object::end() const
     return variables_.end();
 }
 
-template<> void object::add<null> (const std::string&, null) { }
-template<> void object::add<null> (std::pair<std::string, null>) { }
-
 template<>
 void object::add<const shaun&> (const std::string& name, const shaun &ptr)
 {
@@ -346,9 +352,9 @@ void object::add<const shaun&> (const std::string& name, const shaun &ptr)
         case Type::list:
             variables_.insert(std::make_pair(name, std::shared_ptr<shaun>(new list(static_cast<const list&>(ptr)))));
         break;
-
-        // no pollution
         case Type::null:
+            variables_.insert(std::make_pair(name, std::shared_ptr<shaun>(new null())));
+        break;
         default: break;
     }
 }
@@ -421,9 +427,9 @@ void list::push_back(const shaun& ptr)
         case Type::list:
             elements_.push_back(std::shared_ptr<shaun>(new list(static_cast<const list&>(ptr))));
         break;
-
-        // no pollution
         case Type::null:
+            elements_.push_back(std::shared_ptr<shaun>(new null()));
+        break;
         default: break;
     }
 }
@@ -641,7 +647,7 @@ null::null() : shaun(Type::null)
 {
 }
 
-null null::Null;
+null::~null() {}
 
 std::string type_to_string(Type t)
 {
