@@ -20,7 +20,10 @@ public:
      * returns the value of the current shaun item
      */
     template<class C>
-    C& value() const;
+    C value() const;
+
+    template<class C>
+    C with_default(C) const;
 
     /**
      * returns the type of the current shaun item
@@ -47,6 +50,11 @@ public:
     /**
      * gets to a shaun::list's item i
      */
+    sweeper& at(size_t i);
+
+    /**
+     * sweeper::at() wrapper
+     */
     sweeper& operator[](size_t i);
 
     /**
@@ -61,6 +69,9 @@ private:
     shaun * root_;
     
     std::unique_ptr<sweeper> next_;
+
+    static null static_null;
+    static sweeper null_sweeper;
 };
 
 } // namespace

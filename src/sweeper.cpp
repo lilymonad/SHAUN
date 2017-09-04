@@ -6,6 +6,9 @@
 namespace shaun
 {
 
+null sweeper::static_null;
+sweeper sweeper::null_sweeper(static_null);
+
 sweeper::sweeper(shaun &root) : name_("root"), root_(&root)
 {
 }
@@ -79,7 +82,7 @@ shaun * sweeper::compute_path(const std::string& path) const
     return ret;
 }
 
-sweeper& sweeper::operator[](size_t i)
+sweeper& sweeper::at(size_t i)
 {
     if (root_->type() != Type::list)
         throw type_error(Type::list, root_->type(), name_);
@@ -96,6 +99,18 @@ sweeper& sweeper::operator[](size_t i)
     return *next_;
 }
 
+sweeper& sweeper::operator[](size_t i)
+{
+  try
+  {
+    return at(i);
+  }
+  catch (...)
+  {
+    return null_sweeper;
+  }
+}
+
 sweeper& sweeper::get(const std::string& path)
 {
     next_.reset(new sweeper(*compute_path(path)));
@@ -104,17 +119,74 @@ sweeper& sweeper::get(const std::string& path)
 
 sweeper& sweeper::operator()(const std::string& path)
 {
+  try
+  {
     return get(path);
+  }
+  catch (...)
+  {
+    return null_sweeper;
+  }
 }
 
 #define VALUE(TYPE) template<>\
-    TYPE& sweeper::value() const    \
+    TYPE sweeper::value() const    \
     {                      \
         if (root_->type() != Type::TYPE)\
             throw type_error(Type::TYPE, root_->type(), name_);\
                            \
-        return *static_cast<TYPE*>(root_);\
-    }
+        return static_cast<TYPE>(*root_);\
+    }\
+    template<> TYPE sweeper::with_default(TYPE def) const { try { return value<TYPE>(); } catch (...) { return def; } }\
+\
+    template<>\
+    const TYPE & sweeper::value() const    \
+    {                      \
+        if (root_->type() != Type::TYPE)\
+            throw type_error(Type::TYPE, root_->type(), name_);\
+                           \
+        return static_cast<const TYPE&>(*root_);\
+    }\
+    template<> const TYPE & sweeper::with_default(const TYPE& def) const { try { return value<const TYPE&>(); } catch (...) { return def; } }\
+\
+    template<>\
+    TYPE & sweeper::value() const    \
+    {                      \
+        if (root_->type() != Type::TYPE)\
+            throw type_error(Type::TYPE, root_->type(), name_);\
+                           \
+        return static_cast<TYPE&>(*root_);\
+    }\
+    template<> TYPE & sweeper::with_default(TYPE& def) const { try { return value<TYPE&>(); } catch (...) { return def; } }
+
+
+
+#define VALUE_FROM_BOOL(TYPE) template<>\
+    TYPE sweeper::value() const\
+    {\
+      if (root_->type() != Type::boolean)\
+        throw type_error(Type::boolean, root_->type(), name_);\
+      return *static_cast<boolean*>(root_);\
+    } template<>\
+TYPE sweeper::with_default(TYPE def) const { try { return value<TYPE>(); } catch (...) { return def; } }
+
+#define VALUE_FROM_NUM(TYPE) template<>\
+  TYPE sweeper::value() const\
+{\
+  if (root_->type() != Type::number)\
+    throw type_error(Type::number, root_->type(), name_);\
+  return *static_cast<number*>(root_);\
+} template<>\
+TYPE sweeper::with_default(TYPE def) const { try { return value<TYPE>(); } catch (...) { return def; } }
+
+#define VALUE_FROM_STRING(TYPE) template<>\
+  TYPE sweeper::value() const\
+{\
+  if (root_->type() != Type::string)\
+    throw type_error(Type::string, root_->type(), name_);\
+  return *static_cast<string*>(root_);\
+} template<>\
+TYPE sweeper::with_default(TYPE def) const { try { return value<TYPE>(); } catch (...) { return def; } }
 
 VALUE(null)
 VALUE(boolean)
@@ -122,6 +194,21 @@ VALUE(number)
 VALUE(string)
 VALUE(object)
 VALUE(list)
+VALUE_FROM_BOOL(bool)
+VALUE_FROM_NUM(char)
+VALUE_FROM_NUM(unsigned char)
+VALUE_FROM_NUM(short)
+VALUE_FROM_NUM(unsigned short)
+VALUE_FROM_NUM(int)
+VALUE_FROM_NUM(unsigned int)
+VALUE_FROM_NUM(long)
+VALUE_FROM_NUM(unsigned long)
+VALUE_FROM_NUM(wchar_t)
+VALUE_FROM_NUM(float)
+VALUE_FROM_NUM(double)
+VALUE_FROM_NUM(long double)
+VALUE_FROM_STRING(const char *)
+VALUE_FROM_STRING(std::string)
 
 Type sweeper::type() const
 {

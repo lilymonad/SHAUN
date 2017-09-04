@@ -112,7 +112,7 @@ bool sweeper_ok()
         bool isValid = !sw.is_null();
         bool subSweepValid = !sw("list").is_null();
         bool typeValid = sw("list")[0].type() == shaun::Type::number;
-        bool valueValid = sw("list")[2].value<shaun::string>() == "hello there";
+        bool valueValid = /*(shaun::string)*/sw("list")[2].value<shaun::string>() == "hello there";
         return isValid && subSweepValid && typeValid && valueValid;
     }
     catch (shaun::parse_error e)
@@ -133,6 +133,32 @@ bool null_parsing_ok()
   catch (shaun::parse_error e)
   {
     std::cout << e << std::endl;
+    return false;
+  }
+}
+
+bool sweeper_with_default()
+{
+  try
+  {
+    shaun::object o;
+    o.add("x", 10);
+    o.add("y", true);
+    shaun::sweeper sw(o);
+
+    return sw("x").with_default<int>(5) == 10
+        && sw("non").with_default<std::string>("yeah") == "yeah"
+        && sw("y").with_default<bool>(false) == true
+        && sw("x").with_default<std::string>("hello") == "hello";
+  }
+  catch (shaun::exception& e)
+  {
+    std::cout << e << std::endl;
+    return false;
+  }
+  catch (...)
+  {
+    std::cout << "exception occured\n";
     return false;
   }
 }
@@ -158,7 +184,8 @@ int main(void)
         MAKE_TEST(get_with_default),
         MAKE_TEST(list_push_back_prim),
         MAKE_TEST(sweeper_ok),
-        MAKE_TEST(null_parsing_ok)
+        MAKE_TEST(null_parsing_ok),
+        MAKE_TEST(sweeper_with_default)
     };
 
     int failedNum = 0;

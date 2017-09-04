@@ -235,6 +235,7 @@ object::object(const object& obj) : shaun(Type::object), variables_(obj.variable
 {
 }
 
+
 object::~object()
 {
 }
@@ -662,5 +663,26 @@ std::string type_to_string(Type t)
         default: return "unknown";
     }
 }
+
+template<class C>
+const C& to(const shaun& sh);
+#define TO(x) template<> const x & to(const shaun& sh) { if (sh.type() != Type::x) throw type_error(Type::x, sh.type(), "lol"); return *static_cast<const x*>(&sh); }
+
+TO(null)
+TO(list)
+TO(boolean)
+TO(number)
+TO(string)
+TO(object)
+
+#define CTOR_FROM_SHAUN(x) x::x(const shaun& sh) : x(to<x>(sh)) {}
+
+CTOR_FROM_SHAUN(null)
+CTOR_FROM_SHAUN(list)
+CTOR_FROM_SHAUN(boolean)
+CTOR_FROM_SHAUN(number)
+CTOR_FROM_SHAUN(string)
+CTOR_FROM_SHAUN(object)
+
 
 }  // namespace

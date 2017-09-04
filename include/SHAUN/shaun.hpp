@@ -68,6 +68,7 @@ public:
     
     list();
     list(const list& l);
+    list(const shaun& s);
 
     ~list();
 
@@ -120,6 +121,7 @@ class boolean : public shaun
 public:
     boolean();
     boolean(const boolean& b);
+    boolean(const shaun& s);
 
     boolean(bool);
     boolean(char);
@@ -161,6 +163,7 @@ class number : public shaun
 public:
     number();
     number(const number& num);
+    number(const shaun& s);
 
     number(bool, const std::string& u = "");
     number(char, const std::string& u = "");
@@ -204,6 +207,8 @@ class string : public shaun
 public: 
     string();
     string(const string& str);
+    string(const shaun& s);
+
     string(const std::string& str);
     string(const char * str);
 
@@ -241,6 +246,7 @@ class null : public shaun
 {
 public:
     null();
+    null(const shaun& s);
     virtual ~null();
 
     void visited(visitor& v);
@@ -257,6 +263,7 @@ public:
 
     object();
     object(const object& obj);
+    object(const shaun& s);
 
     ~object();
     void visited(visitor& v);
