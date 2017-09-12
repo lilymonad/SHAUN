@@ -65,6 +65,10 @@ bool object_primitive_attributes()
         std::cout << e << std::endl;
         return false;
     }
+    catch (...)
+    {
+      return false;
+    }
 }
 
 bool get_with_default()
@@ -120,7 +124,10 @@ bool sweeper_ok()
         std::cout << e << std::endl;
         return false;
     }
-
+    catch (...)
+    {
+      return false;
+    }
 }
 
 bool null_parsing_ok()
@@ -133,6 +140,10 @@ bool null_parsing_ok()
   catch (shaun::parse_error e)
   {
     std::cout << e << std::endl;
+    return false;
+  }
+  catch (...)
+  {
     return false;
   }
 }

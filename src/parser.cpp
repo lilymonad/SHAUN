@@ -1,7 +1,24 @@
 #include <SHAUN/parser.hpp>
+#include <cctype>
+
+
+#define PARSE_ERROR(str) throw parse_error(it_->_lin, it_->_col, #str)
+#define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
+#define TAKE_TO(c) while (iss_->good() && iss_->peek() != c) forward()
 
 namespace shaun
 {
+
+class token
+{
+public:
+  enum t { LBRACKET, RBRACKET, LHOOK, RHOOK, COMMENT, ATTRIB_SEP, STRING_LIT, NUMERIC_LIT, BOOLEAN_LIT, NULL_LIT, NAME };
+  t _type;
+  std::string _string_value;
+  double _double_value;
+  bool _bool_value;
+  int _lin; int _col;
+};
 
 class parser
 {
@@ -17,6 +34,59 @@ public:
     object parse();
 
 private:
+    int escaped(int i)
+    {
+      switch (i)
+      {
+        case 'n': return '\n';
+        case 't': return '\t';
+        case 'r': return '\r';
+        case '0': return '\0';
+        case '\\': return '\\';
+        case '"': return '"';
+        default: return i;
+      }
+    }
+
+    void make_lexer()
+    {
+      std::vector<token> ret;
+      while (iss_->good())
+      {
+        char c = iss_->peek();
+
+        if (c == '"')
+        {
+          ret.push_back(lex_string());
+        }
+        else if (c == '.' || std::isdigit(c) || c == '+' || c == '-')
+        {
+          ret.push_back(lex_double());
+        }
+        else if (c == 't' || c == 'f')
+        {
+          ret.push_back(lex_boolean());
+        }
+        else if (c == 'n')
+        {
+          ret.push_back(lex_null());
+        }
+        else if (c == '{') { token t; t._type = token::LBRACKET; ret.push_back(t); forward(); }
+        else if (c == '}') { token t; t._type = token::RBRACKET; ret.push_back(t); forward(); }
+        else if (c == '[') { token t; t._type = token::LHOOK; ret.push_back(t); forward(); }
+        else if (c == ']') { token t; t._type = token::RHOOK; ret.push_back(t); forward(); }
+        else if (c == ':') { token t; t._type = token::ATTRIB_SEP; ret.push_back(t); forward(); }
+        else if (std::isalpha(c))
+        {
+          ret.push_back(lex_name());
+        }
+        
+        skipws();
+      }
+
+      tokens_ = ret;
+      it_ = ret.begin();
+    }
 
     void skipws();
     void skip_comment();
@@ -33,18 +103,155 @@ private:
     list parse_list();
     void parse_null();
 
+    token lex_double()
+    {
+      std::string num;
+      char_type c;
+      while (iss_->good() && ((c = iss_->peek()) == 'E'
+          || c == 'e'
+          || c == '-'
+          || std::isdigit(c)
+          || c == '.'
+          || c == '+'))
+      {
+          num.push_back(c);
+          forward();
+      }
+
+      token ret;
+      ret._col = column_; ret._lin = line_;
+      ret._double_value = std::stod(num);
+      ret._type = token::NUMERIC_LIT;
+
+      return ret;
+    }
+
+    token lex_string()
+    {   
+        size_t start_col = column_;
+        forward();
+
+        std::string str;
+        char_type c = '\0';
+        bool get_line = false;
+        bool nows     = false;
+
+        // get a normal string OR the first line of a multiline string
+        while (iss_->good() && (c = iss_->peek()) != '\n' && c != '"')
+        {
+            if (!isspace(c)) nows = true;
+
+            // skipped characters
+            if (c == '\\')
+            {
+              forward();
+              str.push_back(iss_->peek());
+            }
+            else
+            {
+              str.push_back(c);
+            }
+            forward();
+        }
+
+        // if only spaces and multiline string, discard spaces
+        if (!nows && c == '\n')
+        {
+            str.resize(0);
+        }
+        
+        if (c == '\n') forward();
+
+        // this loop for multiline strings
+        while (iss_->good() && (c = iss_->peek()) != '"')
+        {
+            // each new line resets the "spaces counter"
+            if (c == '\n')
+            {
+                str.push_back(c);
+                get_line = false;
+            }
+            else if (column_ >= start_col || get_line || !isspace(c))
+            {
+                // skipped characters
+                if (c == '\\')
+                {
+                  forward();
+                  str.push_back(escaped(iss_->peek()));
+                }
+                else
+                  str.push_back(c);
+
+                get_line = true;
+            }
+
+            forward();
+        }
+
+        // discard last new line, if existing
+        if (str[str.size() - 1] == '\n') str.resize(str.size() - 1);
+
+        PARSE_ASSERT(iss_->good(), unexpected EOF while parsing string);
+
+        forward();        
+
+        token ret;
+        ret._col = column_; ret._lin = line_;
+        ret._string_value = str;
+        ret._type = token::STRING_LIT;
+        return ret;
+    }
+
+    token lex_name()
+    {
+      std::string str;
+
+      char_type c;
+      while (std::isalnum(c = iss_->peek()) || c == '_')
+      {
+        str.push_back(c);
+        forward();
+      }
+
+      token ret;
+      ret._col = column_; ret._lin = line_;
+      ret._string_value = str;
+      ret._type = token::NAME;
+      return ret;
+    }
+
+    token lex_null()
+    {
+      token tret = lex_name();
+      if (tret._string_value == "null")
+      {
+        tret._type = token::NULL_LIT;
+      }
+
+      return tret;
+    }
+
+    token lex_boolean()
+    {
+        token tret = lex_name();
+        if (tret._string_value == "true" || tret._string_value == "false")
+        {
+          tret._bool_value = tret._string_value == "true";
+          tret._type = token::BOOLEAN_LIT;
+        }
+        
+        return tret;
+    }
+
     template<typename T> int signum(T val);
     
     std::istream * iss_;
+    std::vector<token> tokens_;
+    std::vector<token>::iterator it_;
     size_t line_;
     size_t column_;
     bool new_iss;
 };
-
-#define PARSE_ERROR(str) throw parse_error(line_, column_, #str)
-#define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
-#define TAKE_TO(c) while (iss_->good() && iss_->peek() != c) forward()
-
 
   parser::parser(const std::string& str)
   {
@@ -74,44 +281,26 @@ private:
 
         // init the parsing state
         line_ = column_ = 0;
-        
-        // loop through the whole stream
-        while (iss_->good())
+        make_lexer();
+
+        setlocale(LC_NUMERIC, old_locale);
+        if (it_->_type == token::LBRACKET)
         {
-            skipws();
-
-            char_type c = iss_->peek();
-            if (c == '{')
-            {
-        setlocale(LC_NUMERIC, old_locale);
-                return parse_object();
-            }
-            else if (isalpha(c))
-            {
-                object parsed;
-
-                while (iss_->good())
-                {
-                    auto sh = parse_variable();
-                    parsed.add<const shaun&>(sh.first, *sh.second);
-                    delete sh.second;
-                    skipws();
-                }
-
-        setlocale(LC_NUMERIC, old_locale);
-                return parsed;
-            }
-            else
-            {
-                PARSE_ERROR(root must be an object);
-            }
-
-            forward();
+          return parse_object();
         }
+        else
+        {
+          object ret;
+          while (it_ != tokens_.end())
+          {
+            auto sh = parse_variable();
+            ret.add<const shaun&>(sh.first, *sh.second);
+            delete sh.second;
+            ++it_;
+          }
 
-        PARSE_ERROR("couldn't parse this string");
-        
-
+          return ret;
+        }
     }
 
     void parser::skipws()
@@ -169,268 +358,109 @@ private:
 
     object parser::parse_object()
     {
-        PARSE_ASSERT(iss_->peek() == '{', expected object value);
+        PARSE_ASSERT(it_->_type == token::LBRACKET, expected object value);
+        ++it_;
         object obj;
 
-        forward();
-        skipws();
-
-        while (iss_->good() && iss_->peek() != '}')
+        while (it_->_type != token::RBRACKET)
         {
           auto sh = parse_variable();
             obj.add<const shaun&>(sh.first, *sh.second);
               delete sh.second;
-            skipws();
+          ++it_;
         }
 
-        forward();
         return obj;
     }
 
     std::pair<std::string, shaun*> parser::parse_variable()
     {
-        PARSE_ASSERT(isalpha(iss_->peek()), invalid variable name);
-        
         std::string name = parse_name();
-
-        skipws();
-        PARSE_ASSERT(iss_->peek() == ':', expected variable separator ':');
-        forward();
-        skipws();
+        ++it_;
+        PARSE_ASSERT(it_->_type == token::ATTRIB_SEP, expected variable separator ':');
+        ++it_;
 
         return std::make_pair(name, parse_value());
     }
 
     std::string parser::parse_name()
     {
-        PARSE_ASSERT(isalpha(iss_->peek()) || iss_->peek() == '_', names must start with a letter or '_');
-        std::string ret;
-        char_type c;
-        while (isalnum(c = iss_->peek()) || c == '_')
-        {
-            ret.push_back(c);
-            forward();
-        }
-
-        PARSE_ASSERT(ret != "true" && ret != "false"
-            , true or false are invalid names);
-        return ret;
+        PARSE_ASSERT(it_->_type == token::NAME, expected a name);
+        return it_->_string_value;
     }
 
     shaun* parser::parse_value()
     {
         shaun * ret = 0;
 
-        char_type c = iss_->peek();
-        if (c == '"')
+        switch (it_->_type)
         {
-            ret = new string(parse_string());
-        }
-        
-        if (isdigit(c) || c == '-' || c == '.')
-        {
-            ret = new number(parse_number());
-        }
-        
-        if (c == '{')
-        {
-            ret = new object(parse_object());
-        }
-        
-        if (c == 't' || c == 'f')
-        {
-            ret = new boolean(parse_boolean());
-        }
-        
-        if (c == '[')
-        {
-            ret = new list(parse_list());
-        }
-
-        if (c == 'n')
-        {
-            parse_null();
-            ret = new null();
+          case token::STRING_LIT:
+            ret = new string(parse_string()); break;
+          case token::NUMERIC_LIT:
+            ret = new number(parse_number()); break;
+          case token::LBRACKET:
+            ret = new object(parse_object()); break;
+          case token::BOOLEAN_LIT:
+            ret = new boolean(parse_boolean()); break;
+          case token::LHOOK:
+            ret = new list(parse_list()); break;
+          case token::NULL_LIT:
+            ret = new null(); break;
+          default: break;
         }
         
         if (ret)
           return ret;
 
-        std::string err = "illegal character:  ";
-        err[err.size() - 1] = c;
-        throw parse_error(line_, column_, err);
+        PARSE_ERROR(expected a value);
     }
 
     string parser::parse_string()
     {
-        PARSE_ASSERT(iss_->peek() == '"', expected string value);
-        size_t start_col = column_;
-        forward();
-
-        std::string str;
-        char_type c = '\0';
-        bool get_line = false;
-        bool nows     = false;
-
-        // get a normal string OR the first line of a multiline string
-        while (iss_->good() && (c = iss_->peek()) != '\n' && c != '"')
-        {
-            if (!isspace(c)) nows = true;
-
-            // skipped characters
-            if (c == '\\')
-            {
-              forward();
-              str.push_back(iss_->peek());
-            }
-            else
-            {
-              str.push_back(c);
-            }
-            forward();
-        }
-
-        // if only spaces and multiline string, discard spaces
-        if (!nows && c == '\n')
-        {
-            str.resize(0);
-        }
-        
-        if (c == '\n') forward();
-
-        // this loop for multiline strings
-        while (iss_->good() && (c = iss_->peek()) != '"')
-        {
-            // each new line resets the "spaces counter"
-            if (c == '\n')
-            {
-                str.push_back(c);
-                get_line = false;
-            }
-            else if (column_ >= start_col || get_line || !isspace(c))
-            {
-                // skipped characters
-                if (c == '\\')
-                {
-                  forward();
-                  str.push_back(iss_->peek());
-                }
-                else
-                  str.push_back(c);
-
-                get_line = true;
-            }
-
-            forward();
-        }
-
-        // discard last new line, if existing
-        if (str[str.size() - 1] == '\n') str.resize(str.size() - 1);
-
-        PARSE_ASSERT(iss_->good(), unexpected EOF while parsing string);
-
-        forward();        
-
-        return string(str);
+      PARSE_ASSERT(it_->_type == token::STRING_LIT, expected a string);
+      return string(it_->_string_value);
     }
 
     number parser::parse_number()
     {
-        std::string num;
-        std::string unit;
-        char_type c;
-        while (iss_->good() && ((c = iss_->peek()) == 'E'
-            || c == 'e'
-            || c == '-'
-            || isdigit(c)
-            || c == '.'
-            || c == '+'))
-        {
-            num.push_back(c);
-            forward();
-        }
+      double num;
+      std::string unit;
+      PARSE_ASSERT(it_->_type == token::NUMERIC_LIT, expected a numeric value);
+      num = it_->_double_value;
+      if ((it_+1)->_type == token::NAME && (it_+2)->_type != token::ATTRIB_SEP)
+      {
+        unit = it_->_string_value;
+        ++it_;
+      }
+      else
+        unit = "";
 
-        size_t before_unit = iss_->tellg();
-        skipws();
-        try
-        {
-            unit = parse_name();
-        }
-        catch (...)
-        {
-            unit = "none";
-            iss_->seekg(before_unit, iss_->beg);
-        }
-        skipws();
-
-        try
-        {
-            double dbl = std::stod(num);
-                if (iss_->peek() == ':')
-                {
-                    iss_->seekg(before_unit, iss_->beg);
-                    return number(dbl, "");
-                }
-                else
-                {
-                    return number(dbl, unit);
-                }
-        }
-        catch (const std::invalid_argument&)
-        {
-            PARSE_ERROR(invalid number format);
-        }
-        catch (...)
-        {
-            PARSE_ERROR(error parsing a number);
-        }
+      return number(num, unit);
     }
 
     boolean parser::parse_boolean()
     {
-        std::string ret;
-        char_type c;
-        while (isalpha(c = iss_->peek()))
-        {
-            ret.push_back(c);
-            forward();
-        }
-
-        PARSE_ASSERT(ret == "true" || ret == "false", expected boolean value);
-        return boolean(ret == "true");
+        PARSE_ASSERT(it_->_type == token::BOOLEAN_LIT, expected boolean value);
+        return boolean(it_->_bool_value);
     }
 
     list parser::parse_list()
     {
-        PARSE_ASSERT(iss_->peek() == '[', expected list value);
+        PARSE_ASSERT(it_->_type == token::LHOOK, expected list value);
         list ret;
 
-        forward();
-        skipws();
-        while (iss_->good() && iss_->peek() != ']')
+        while ((++it_)->_type == token::RHOOK)
         {
           shaun * sh = parse_value();
-            ret.push_back(*sh);
-              delete sh;
-            skipws();
+          ret.push_back(*sh);
+          delete sh;
         }
 
-        forward();
         return ret;
     }
 
-    void parser::parse_null()
-    {
-      std::string ret;
-      char_type c;
-      while (isalpha(c = iss_->peek()))
-      {
-        ret.push_back(c);
-        forward();
-      }
-
-      PARSE_ASSERT(ret == "null", expected null value);
-    }
+    void parser::parse_null() {}
 
     template<typename T> int parser::signum(T val)
     {
