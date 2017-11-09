@@ -1,6 +1,6 @@
 #include <SHAUN/parser.hpp>
 #include <cctype>
-
+#include <iterator>
 
 #define PARSE_ERROR(str) throw parse_error(it_->_lin, it_->_col, #str)
 #define PARSE_ASSERT(cond, str) if (!(cond)) PARSE_ERROR(str)
@@ -12,7 +12,7 @@ namespace shaun
 class token
 {
 public:
-  enum t { LBRACKET, RBRACKET, LHOOK, RHOOK, COMMENT, ATTRIB_SEP, STRING_LIT, NUMERIC_LIT, BOOLEAN_LIT, NULL_LIT, NAME };
+  enum t { LBRACKET=0, RBRACKET=1, LHOOK=2, RHOOK=3, COMMENT=4, ATTRIB_SEP=5, STRING_LIT=6, NUMERIC_LIT=7, BOOLEAN_LIT=8, NULL_LIT=9, NAME=10 };
   t _type;
   std::string _string_value;
   double _double_value;
@@ -50,42 +50,34 @@ private:
 
     void make_lexer()
     {
-      std::vector<token> ret;
+      std::vector<token> ret_;
       while (iss_->good())
       {
         char c = iss_->peek();
 
         if (c == '"')
         {
-          ret.push_back(lex_string());
+          ret_.push_back(lex_string());
         }
         else if (c == '.' || std::isdigit(c) || c == '+' || c == '-')
         {
-          ret.push_back(lex_double());
+          ret_.push_back(lex_double());
         }
-        else if (c == 't' || c == 'f')
-        {
-          ret.push_back(lex_boolean());
-        }
-        else if (c == 'n')
-        {
-          ret.push_back(lex_null());
-        }
-        else if (c == '{') { token t; t._type = token::LBRACKET; ret.push_back(t); forward(); }
-        else if (c == '}') { token t; t._type = token::RBRACKET; ret.push_back(t); forward(); }
-        else if (c == '[') { token t; t._type = token::LHOOK; ret.push_back(t); forward(); }
-        else if (c == ']') { token t; t._type = token::RHOOK; ret.push_back(t); forward(); }
-        else if (c == ':') { token t; t._type = token::ATTRIB_SEP; ret.push_back(t); forward(); }
+        else if (c == '{') { token t; t._type = token::LBRACKET; ret_.push_back(t); forward(); }
+        else if (c == '}') { token t; t._type = token::RBRACKET; ret_.push_back(t); forward(); }
+        else if (c == '[') { token t; t._type = token::LHOOK; ret_.push_back(t); forward(); }
+        else if (c == ']') { token t; t._type = token::RHOOK; ret_.push_back(t); forward(); }
+        else if (c == ':') { token t; t._type = token::ATTRIB_SEP; ret_.push_back(t); forward(); }
         else if (std::isalpha(c))
         {
-          ret.push_back(lex_name());
+          ret_.push_back(lex_name());
         }
         
         skipws();
       }
 
-      tokens_ = ret;
-      it_ = ret.begin();
+      tokens_ = ret_;
+      it_ = tokens_.begin();
     }
 
     void skipws();
@@ -122,7 +114,6 @@ private:
       ret._col = column_; ret._lin = line_;
       ret._double_value = std::stod(num);
       ret._type = token::NUMERIC_LIT;
-
       return ret;
     }
 
@@ -145,7 +136,7 @@ private:
             if (c == '\\')
             {
               forward();
-              str.push_back(iss_->peek());
+              str.push_back(escaped(iss_->peek()));
             }
             else
             {
@@ -216,31 +207,13 @@ private:
       token ret;
       ret._col = column_; ret._lin = line_;
       ret._string_value = str;
-      ret._type = token::NAME;
+      if (str == "false" || str == "true")
+        ret._type = token::BOOLEAN_LIT;
+      else if (str == "null")
+        ret._type = token::NULL_LIT;
+      else
+        ret._type = token::NAME;
       return ret;
-    }
-
-    token lex_null()
-    {
-      token tret = lex_name();
-      if (tret._string_value == "null")
-      {
-        tret._type = token::NULL_LIT;
-      }
-
-      return tret;
-    }
-
-    token lex_boolean()
-    {
-        token tret = lex_name();
-        if (tret._string_value == "true" || tret._string_value == "false")
-        {
-          tret._bool_value = tret._string_value == "true";
-          tret._type = token::BOOLEAN_LIT;
-        }
-        
-        return tret;
     }
 
     template<typename T> int signum(T val);
@@ -450,13 +423,12 @@ private:
         PARSE_ASSERT(it_->_type == token::LHOOK, expected list value);
         list ret;
 
-        while ((++it_)->_type == token::RHOOK)
+        while ((++it_)->_type != token::RHOOK)
         {
           shaun * sh = parse_value();
           ret.push_back(*sh);
           delete sh;
         }
-
         return ret;
     }
 

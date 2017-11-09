@@ -255,6 +255,8 @@ OBJ_GET(number)
 OBJ_GET(object)
 OBJ_GET(boolean)
 OBJ_GET(string)
+OBJ_GET(list)
+OBJ_GET(null)
 
 template<>
 shaun& object::get<shaun>(const std::string& name)
@@ -530,6 +532,7 @@ LIST_AT(object)
 LIST_AT(number)
 LIST_AT(boolean)
 LIST_AT(string)
+LIST_AT(null)
 
 size_t list::size() const
 {

@@ -1,7 +1,7 @@
 {
   preferences: {
     startpage: "http://goog\\le.\"fr",
-    force_maximized: true
+    force_maximized: true,
     number1: 12.3 rad   number2: 13   last_one: "prout"
   }
 }

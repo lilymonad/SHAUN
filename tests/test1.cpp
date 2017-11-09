@@ -17,8 +17,7 @@ bool parsing_ok()
     try
     {
         // Parse file
-        ifstream file("../resources/test.shaun");
-        shaun::object obj1 = shaun::parse_file("../resources/test.shaun");
+        shaun::object obj1 = shaun::parse_file("../resources/test_tangente.shaun");
 
         // Generate shaun file
         stringstream output1;

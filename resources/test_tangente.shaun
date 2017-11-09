@@ -1,0 +1,93 @@
+// sounds
+sounds:
+[
+  { name: "joc"
+  , path: "gamedata/audio/Jam Off Clearance.ogg"
+  }
+
+  { name: "click"
+  , path: "gamedata/audio/click.ogg"
+  }
+]
+
+// bgm
+bgm:
+[
+  { name: "joc"
+  , intro: 1
+  , outro: 2
+  }
+]
+
+// Fonts
+fonts:
+[
+  { name: "Regular"
+  , path: "gamedata/font/OpenSans-Regular.ttf"
+  , sizes: [ 48 14 45 41 ]
+  }
+]
+
+// Objects Definitions
+objects:
+[
+  { name: "orc_weak"
+  , model: "orc"
+  }
+  
+  { name: "orc_strong"
+  , model: "orc"
+  }
+
+  { name: "bullet1"
+  , model: "bullet1"
+  }
+]
+
+
+// 2D Models
+models:
+[
+  /*
+    name : string; animations : [ string ]
+  
+    animations field references the names
+    of animations defined below
+  */
+  { name: "orc"
+  , animations: [ "orc_run", "orc_idle" ]
+  }
+
+  { name: "bullet1"
+  , animations: [ "bullet1" ]
+  }
+
+  { name: "flake"
+  , animations: [ "flake_idle" ]
+  }
+]
+
+// Sprites Animations
+animations:
+[
+  // name : string; frames : [ (string, double) ]
+  { name: "orc_run"
+  , frames: [ [ "gamedata/images/test1.png" 0.1 ]
+            , [ "gamedata/images/test2.png" 0.2 ]
+            ]
+  }
+
+  { name: "orc_idle"
+  , frames: [ [ "gamedata/images/test2.png" 1000 ]
+            ]
+  }
+
+  { name: "bullet1"
+  , frames: [ [ "gamedata/images/test2.png" 1000 ]
+            ]
+  }
+
+  { name: "flake_idle"
+  , frames: [ [ "gamedata/images/flake.png" 1 ] ]
+  }
+]
